@@ -1,7 +1,12 @@
-﻿namespace SmartBillingServer.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace SmartBillingServer.Models
 {
     public class Item
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public string Barcode { get; set; }
         public string ItemName { get; set; }

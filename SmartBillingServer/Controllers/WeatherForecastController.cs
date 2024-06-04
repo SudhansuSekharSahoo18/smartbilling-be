@@ -29,5 +29,12 @@ namespace SmartBillingServer.Controllers
             })
             .ToArray();
         }
+
+
+        [HttpGet("index")]
+        public string Home()
+        {
+            return "Hello World";
+        }
     }
 }

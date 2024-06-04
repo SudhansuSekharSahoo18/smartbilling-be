@@ -1,3 +1,4 @@
+using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
 using SmartBillingServer.Models;
 
@@ -7,40 +8,41 @@ namespace SmartBillingServer.Controllers
     [Route("api/[controller]")]
     public class BillController : ControllerBase
     {
-        List<Bill> bills = new()
-        {
-            new Bill(id: 1, subTotal: 100, discountAmount: 10, totalAmount: 90, modeOfPayment: "Cash"
-                ,customerName: "Default", customerAddress: "", billItems: new List<BillItem>()),
-        };
-
+        private readonly IBillRepository _billRepo;
         private readonly ILogger<WeatherForecastController> _logger;
 
-        public BillController(ILogger<WeatherForecastController> logger)
+        public BillController(IBillRepository db, ILogger<WeatherForecastController> logger)
         {
+            _billRepo = db;
             _logger = logger;
         }
 
-        [HttpGet(Name = "Bill")]
-        public IEnumerable<Bill> Get()
+        [HttpGet("Get")]
+        public ActionResult<IEnumerable<Bill>> Get()
         {
-            return bills;
+            var objBillList = _billRepo.GetAll(includeProperties: "BillItems");
+            return Ok(objBillList);
         }
 
 
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        [HttpGet("GetById/{id}")]
+        public ActionResult<Bill> GetById(int? id)
         {
-            var bill = bills.FirstOrDefault(x=>x.Id == id);
-            if(bill  == null)
+            if (id == null || id == 0)
+            {
+                return NotFound();
+            }
+            var category = _billRepo.Get(x => x.Id == id, includeProperties: "BillItems");
+            if (category == null)
             {
                 return NotFound();
             }
 
-            return Ok(bill);
+            return Ok(category);
         }
 
 
-        [HttpPost(Name = "Create")]
+        [HttpPost("Create")]
         public IActionResult Create([FromBody] Bill bill)
         {
             if (bill == null)
@@ -48,10 +50,9 @@ namespace SmartBillingServer.Controllers
                 return BadRequest();
             }
 
-            bill.Id = bills.Count + 1;
-            bills.Add(bill);
+            bill.CreatedDateTime = DateTime.Now;
+            _billRepo.Add(bill);
             return CreatedAtAction(nameof(GetById), new {id = bill.Id}, bill);
-
-        }
+        }   
     }
 }

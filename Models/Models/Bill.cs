@@ -1,7 +1,12 @@
-﻿namespace SmartBillingServer.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+
+namespace SmartBillingServer.Models
 {
     public class Bill
     {
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
         public double SubTotal { get; set; }
         public double DiscountAmount { get; set; }
@@ -10,6 +15,7 @@
         public string CustomerName { get; set; }
         public string CustomerAddress { get; set; }
         public List<BillItem> BillItems { get; set; } = new List<BillItem>();
+        public DateTime CreatedDateTime { get; set; }
 
         public Bill(int id, double subTotal, double discountAmount, double totalAmount, string modeOfPayment, 
             string customerName, string customerAddress, List<BillItem> billItems)

@@ -1,21 +1,19 @@
+using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
 using SmartBillingServer.Models;
 
 namespace SmartBillingServer.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ItemController : ControllerBase
     {
-        private static readonly string[] Summaries = new[]
-        {
-            "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-        };
+        private readonly IRepository<Item> _repo;
+        private readonly ILogger<Item> _logger;
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public ItemController(ILogger<WeatherForecastController> logger)
+        public ItemController(IRepository<Item> repo, ILogger<Item> logger)
         {
+            _repo = repo;
             _logger = logger;
         }
 
@@ -37,6 +35,38 @@ namespace SmartBillingServer.Controllers
             ];
 
             return items;
+        }
+
+
+        [HttpGet("{id}")]
+        public IActionResult GetById(int? id)
+        {
+            if (id == null || id == 0)
+            {
+                return NotFound();
+            }
+            var category = _repo.Get(x => x.Id == id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(category);
+        }
+
+        [HttpPost]
+        public IActionResult Create([FromBody] Item item)
+        {
+            if (ModelState.IsValid)
+            {
+                _repo.Add(item);
+            }
+            else
+            {
+                return BadRequest();
+            }
+
+            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
         }
     }
 }
