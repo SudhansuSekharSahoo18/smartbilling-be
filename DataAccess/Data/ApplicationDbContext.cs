@@ -12,11 +12,17 @@ namespace SmartBillingServer.DataAccess.Data
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<Bill> Bills { get; set; }
-        public DbSet<Product> Products { get; set; }
+        public DbSet<Item> Items { get; set; }
+        public DbSet<Employee> Employees { get; set; }
+        public DbSet<Customer> Customers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             //base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<ApplicationConfiguration>().HasData(
+                new ApplicationConfiguration {Id=1, Barcode = 101, Version = "1.0.0" }
+                );
 
             modelBuilder.Entity<Category>().HasData(
                 new Category { Id = 1, Name = "Action", DisplayOrder = 1 },
@@ -24,17 +30,22 @@ namespace SmartBillingServer.DataAccess.Data
                 new Category { Id = 3, Name = "History", DisplayOrder = 3 }
                 );
 
-            modelBuilder.Entity<Product>().HasData(
-                new Product { Id = 1,Barcode="101", Title = "Saree", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 500, CategoryId = 1 },
-                new Product { Id = 2, Barcode="102", Title = "Jeans", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 1500, CategoryId = 2 },
-                new Product { Id = 3, Barcode="103", Title = "Shirt", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 400, CategoryId = 2 },
-                new Product { Id = 4, Barcode="104", Title = "Socks", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 150, CategoryId = 1 },
-                new Product { Id = 5, Barcode="105", Title = "Lungi", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 80, CategoryId = 3 },
-                new Product { Id = 6, Barcode="106", Title = "Frock", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 345, CategoryId = 1 },
-                new Product { Id = 7, Barcode="107", Title = "Lengha", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 800, CategoryId = 3 },
-                new Product { Id = 8, Barcode="108", Title = "Gamcha", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 120, CategoryId = 1 },
-                new Product { Id = 9, Barcode="109", Title = "Shoes", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 700, CategoryId = 2 },
-                new Product { Id = 10, Barcode="110", Title = "Cap", Description = "", Quantity = 1, CostPrice = 300, SellPrice = 50, CategoryId = 1 }
+
+            modelBuilder.Entity<Employee>().HasData(
+                new Employee { Id = 1, Name = "System", UserName = "System", Password = "12345", PhoneNumber = "1234567890", IsAdmin = true, CreatedById = 1, CreatedDateTime = DateTime.Now }
+                );
+
+            modelBuilder.Entity<Item>().HasData(
+                new Item { Id = 1, Barcode = "101", ItemName = "Saree", Description = "",Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 500, CategoryId = 1 },
+                new Item { Id = 2, Barcode = "102", ItemName = "Jeans", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 1500, CategoryId = 2 },
+                new Item { Id = 3, Barcode = "103", ItemName = "Shirt", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 400, CategoryId = 2 },
+                new Item { Id = 4, Barcode = "104", ItemName = "Socks", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 150, CategoryId = 1 },
+                new Item { Id = 5, Barcode = "105", ItemName = "Lungi", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 80, CategoryId = 3 },
+                new Item { Id = 6, Barcode = "106", ItemName = "Frock", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 345, CategoryId = 1 },
+                new Item { Id = 7, Barcode = "107", ItemName = "Lengha", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 800, CategoryId = 3 },
+                new Item { Id = 8, Barcode = "108", ItemName = "Gamcha", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 120, CategoryId = 1 },
+                new Item { Id = 9, Barcode = "109", ItemName = "Shoes", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 700, CategoryId = 2 },
+                new Item { Id = 10, Barcode = "110", ItemName = "Cap", Description = "", Unit="Pieces", Quantity = 1, CostPrice = 300, SellPrice = 50, CategoryId = 1 }
                 );
 
             //var billItems = new List<BillItem>() {

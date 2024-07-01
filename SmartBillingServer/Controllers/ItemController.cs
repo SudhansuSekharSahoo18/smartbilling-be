@@ -1,5 +1,6 @@
 using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Models.Models;
 using SmartBillingServer.Models;
 
 namespace SmartBillingServer.Controllers
@@ -8,35 +9,23 @@ namespace SmartBillingServer.Controllers
     [Route("api/[controller]")]
     public class ItemController : ControllerBase
     {
-        private readonly IRepository<Item> _repo;
-        private readonly ILogger<Item> _logger;
-
-        public ItemController(IRepository<Item> repo, ILogger<Item> logger)
+        private readonly IProductRepository _productRepo;
+        private readonly IApplicationConfigurationRepository _appConfigRepo;
+        private readonly ILogger<ItemController> _logger;
+        private int barcode = 110; 
+        public ItemController(IProductRepository db, ILogger<ItemController> logger, IApplicationConfigurationRepository appConfigRepo)
         {
-            _repo = repo;
+            _productRepo = db;
             _logger = logger;
+            _appConfigRepo = appConfigRepo;
         }
 
-        [HttpGet(Name = "Items")]
+        [HttpGet(Name = "Item")]
         public IEnumerable<Item> Get()
         {
-            List<Item> items =
-            [
-                new Item(1, "101", "Saree", 500),
-                new Item(2, "102", "Jeans", 1500),
-                new Item(3, "103", "Shirt", 400),
-                new Item(4, "104", "Socks", 150),
-                new Item(5, "105", "Lungi", 80),
-                new Item(5, "106", "Frock", 345),
-                new Item(5, "107", "Gamcha", 120),
-                new Item(5, "108", "Lengha", 800),
-                new Item(5, "109", "Shoes", 700),
-                new Item(5, "110", "Cap", 50),
-            ];
-
-            return items;
+            var objCategoryList = _productRepo.GetAll();
+            return objCategoryList;
         }
-
 
         [HttpGet("{id}")]
         public IActionResult GetById(int? id)
@@ -45,7 +34,7 @@ namespace SmartBillingServer.Controllers
             {
                 return NotFound();
             }
-            var category = _repo.Get(x => x.Id == id);
+            var category = _productRepo.Get(x => x.Id == id);
             if (category == null)
             {
                 return NotFound();
@@ -54,19 +43,80 @@ namespace SmartBillingServer.Controllers
             return Ok(category);
         }
 
-        [HttpPost]
-        public IActionResult Create([FromBody] Item item)
+
+        [HttpPost("Create")]
+        public IActionResult Create([FromBody] Item product)
+        {
+            if (product == null || ModelState.IsValid == false)
+            {
+                return BadRequest();
+            }
+
+            if(string.IsNullOrEmpty(product.Barcode))
+            {
+                var appConfig = _appConfigRepo.Get(x => x.Id == 1);
+                if(appConfig != null)
+                {
+                    product.Barcode = appConfig.Barcode.ToString();
+                    appConfig.Barcode++;
+                    _appConfigRepo.Update(appConfig);
+                }
+            }
+            product.CreatedById = 1;
+            product.CreatedDateTime = DateTime.Now;
+            _productRepo.Add(product);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+        }
+
+        [HttpPost("Update")]
+        public IActionResult Update([FromBody] Item product)
         {
             if (ModelState.IsValid)
             {
-                _repo.Add(item);
+                _productRepo.Update(product);
             }
             else
             {
                 return BadRequest();
             }
 
-            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
+
+
+        //[HttpPost(Name = "Delete")]
+        //public IActionResult Delete(int? id)
+        //{
+        //    if (id == null || id == 0)
+        //    {
+        //        return NotFound();
+        //    }
+        //    var category = _categoryRepo.Get(x => x.Id == id);
+        //    if (category == null)
+        //    {
+        //        return NotFound();
+        //    }
+        //    _categoryRepo.Remove(category);
+
+        //    return Ok(category);
+        //}
+
+
+
+        //[HttpPost(Name = "Edit")]
+        //public IActionResult Edit(int? id)
+        //{
+        //    if (id == null || id == 0)
+        //    {
+        //        return NotFound();
+        //    }
+        //    var objCategory = _db.Categories.FirstOrDefault(x => x.Id == id); 
+        //    if (objCategory == null)
+        //    {
+        //        return NotFound();
+        //    }
+
+        //    return Ok(objCategory);
+        //}
     }
 }

@@ -1,53 +1,65 @@
-using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Models.Models;
+using Models.Dtos;
 
 namespace SmartBillingServer.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ProductController : ControllerBase
+    public class BarcodeController : ControllerBase
     {
-        private readonly IProductRepository _productRepo;
-        private readonly ILogger<ProductController> _logger;
-
-        public ProductController(IProductRepository db, ILogger<ProductController> logger)
+        //private readonly IBarcodeRepository _BarcodeRepo;
+        private readonly ILogger<BarcodeController> _logger; 
+        //private readonly IConfiguration _configuration;
+        private string fileName = "C:\\Sudhansu\\Barcode.csv";
+        public BarcodeController(ILogger<BarcodeController> logger)
         {
-            _productRepo = db;
+            //_BarcodeRepo = db;
             _logger = logger;
+            //_configuration = configuration;
+            //fileName = _configuration["appsettings:ConfigSettings:BarcodeGenerationFilePath"];
         }
 
-        [HttpGet(Name = "Product")]
-        public IEnumerable<Product> Get()
+        [HttpPost("GenerateBarcode")]
+        public IActionResult GenerateBarcodeDocument([FromBody] List<Barcode> barcodeList)
         {
-            var objCategoryList = _productRepo.GetAll();
-            return objCategoryList;
-        }
-
-
-        [HttpGet("{id}")]
-        public IActionResult GetById(int? id)
-        {
-            if (id == null || id == 0)
+            var content = "";
+            content += $"ItemCode,ItemName,Price,Quantity\n";
+            foreach (var barcode in barcodeList)
             {
-                return NotFound();
-            }
-            var category = _productRepo.Get(x => x.Id == id);
-            if (category == null)
-            {
-                return NotFound();
+                content += $"{barcode.ItemCode},{barcode.ItemName},{barcode.Price},{barcode.Quantity}\n";
             }
 
-            return Ok(category);
+            System.IO.File.WriteAllText(fileName, content);
+            return Ok(barcodeList);
         }
+
+
+
+
+
+        //[HttpGet("{id}")]
+        //public IActionResult GetById(int? id)
+        //{
+        //    //if (id == null || id == 0)
+        //    //{
+        //    //    return NotFound();
+        //    //}
+        //    //var category = _BarcodeRepo.Get(x => x.Id == id);
+        //    //if (category == null)
+        //    //{
+        //    //    return NotFound();
+        //    //}
+
+        //    //return Ok(category);
+        //}
 
 
         //[HttpPost(Name = "Create")]
-        //public IActionResult Create([FromBody] Product category)
+        //public IActionResult Create([FromBody] Barcode category)
         //{
         //    if (ModelState.IsValid)
         //    {
-        //        _productRepo.Add(category);
+        //        _BarcodeRepo.Add(category);
         //    }
         //    else
         //    {
