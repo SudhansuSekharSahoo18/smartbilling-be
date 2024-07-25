@@ -1,6 +1,5 @@
 using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Models.Dtos;
 using SmartBillingServer.Models;
 
 namespace SmartBillingServer.Controllers
@@ -49,7 +48,7 @@ namespace SmartBillingServer.Controllers
             {
                 return BadRequest();
             }
-
+            
             bill.CreatedDateTime = DateTime.Now;
             _billRepo.Add(bill);
             return CreatedAtAction(nameof(GetById), new { id = bill.Id }, bill);

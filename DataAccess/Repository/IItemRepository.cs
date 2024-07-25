@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace DataAccess.Repository
 {
-    public interface IProductRepository : IRepository<Item>
+    public interface IItemRepository : IRepository<Item>
     {
     }
 }

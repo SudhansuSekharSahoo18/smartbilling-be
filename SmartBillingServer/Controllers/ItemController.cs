@@ -9,21 +9,24 @@ namespace SmartBillingServer.Controllers
     [Route("api/[controller]")]
     public class ItemController : ControllerBase
     {
-        private readonly IProductRepository _productRepo;
+        private readonly IItemRepository _itemRepo;
+        private readonly IBarcodeRepository _barcodeRepo;
         private readonly IApplicationConfigurationRepository _appConfigRepo;
         private readonly ILogger<ItemController> _logger;
-        private int barcode = 110; 
-        public ItemController(IProductRepository db, ILogger<ItemController> logger, IApplicationConfigurationRepository appConfigRepo)
+        private int barcode = 110;
+        public ItemController(IItemRepository db, ILogger<ItemController> logger, IApplicationConfigurationRepository appConfigRepo,
+            IBarcodeRepository barcodeRepo)
         {
-            _productRepo = db;
+            _itemRepo = db;
             _logger = logger;
             _appConfigRepo = appConfigRepo;
+            _barcodeRepo = barcodeRepo;
         }
 
         [HttpGet(Name = "Item")]
         public IEnumerable<Item> Get()
         {
-            var objCategoryList = _productRepo.GetAll();
+            var objCategoryList = _itemRepo.GetAll();
             return objCategoryList;
         }
 
@@ -34,7 +37,7 @@ namespace SmartBillingServer.Controllers
             {
                 return NotFound();
             }
-            var category = _productRepo.Get(x => x.Id == id);
+            var category = _itemRepo.Get(x => x.Id == id);
             if (category == null)
             {
                 return NotFound();
@@ -52,10 +55,10 @@ namespace SmartBillingServer.Controllers
                 return BadRequest();
             }
 
-            if(string.IsNullOrEmpty(product.Barcode))
+            if (string.IsNullOrEmpty(product.Barcode))
             {
                 var appConfig = _appConfigRepo.Get(x => x.Id == 1);
-                if(appConfig != null)
+                if (appConfig != null)
                 {
                     product.Barcode = appConfig.Barcode.ToString();
                     appConfig.Barcode++;
@@ -64,7 +67,11 @@ namespace SmartBillingServer.Controllers
             }
             product.CreatedById = 1;
             product.CreatedDateTime = DateTime.Now;
-            _productRepo.Add(product);
+            _itemRepo.Add(product);
+            var barcode = new Barcode() { ItemCode = product.Barcode, ItemName = product.ItemName,
+                Price = (int)product.SellPrice, Quantity = product.Quantity };
+            _barcodeRepo.Add(barcode);
+
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
 
@@ -73,7 +80,7 @@ namespace SmartBillingServer.Controllers
         {
             if (ModelState.IsValid)
             {
-                _productRepo.Update(product);
+                _itemRepo.Update(product);
             }
             else
             {

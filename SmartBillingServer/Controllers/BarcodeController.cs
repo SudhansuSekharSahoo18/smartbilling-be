@@ -1,5 +1,7 @@
+using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Models.Dtos;
+using SmartBillingServer.Models;
 
 namespace SmartBillingServer.Controllers
 {
@@ -7,30 +9,44 @@ namespace SmartBillingServer.Controllers
     [Route("api/[controller]")]
     public class BarcodeController : ControllerBase
     {
-        //private readonly IBarcodeRepository _BarcodeRepo;
-        private readonly ILogger<BarcodeController> _logger; 
+        private readonly IBarcodeRepository _barcodeRepo;
+        private readonly ILogger<BarcodeController> _logger;
         //private readonly IConfiguration _configuration;
         private string fileName = "C:\\Sudhansu\\Barcode.csv";
-        public BarcodeController(ILogger<BarcodeController> logger)
+        public BarcodeController(IBarcodeRepository db, ILogger<BarcodeController> logger)
         {
-            //_BarcodeRepo = db;
+            _barcodeRepo = db;
             _logger = logger;
             //_configuration = configuration;
             //fileName = _configuration["appsettings:ConfigSettings:BarcodeGenerationFilePath"];
         }
 
-        [HttpPost("GenerateBarcode")]
-        public IActionResult GenerateBarcodeDocument([FromBody] List<Barcode> barcodeList)
+        [HttpGet(Name = "Barcode")]
+        public IEnumerable<Barcode> Get()
         {
-            var content = "";
-            content += $"ItemCode,ItemName,Price,Quantity\n";
-            foreach (var barcode in barcodeList)
-            {
-                content += $"{barcode.ItemCode},{barcode.ItemName},{barcode.Price},{barcode.Quantity}\n";
-            }
+            IEnumerable<Barcode> objCategoryList = _barcodeRepo.GetAll();
+            return objCategoryList;
+        }
 
-            System.IO.File.WriteAllText(fileName, content);
-            return Ok(barcodeList);
+        [HttpPost("GenerateBarcode")]
+        public IActionResult GenerateBarcodeDocument([FromBody] BarcodeDto barcodeDto)
+        {
+            try
+            {
+                var content = "";
+                content += $"ItemCode,ItemName,Price,Quantity\n";
+                foreach (var barcode in barcodeDto.BarcodeList)
+                {
+                    content += $"{barcode.ItemCode},{barcode.ItemName},{barcode.Price},{barcode.Quantity}\n";
+                }
+
+                System.IO.File.WriteAllText(barcodeDto.FilePath, content);
+                return Ok(barcodeDto.BarcodeList);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
 

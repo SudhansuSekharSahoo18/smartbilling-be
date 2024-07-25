@@ -24,8 +24,9 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
 builder.Services.AddScoped<IBillRepository, BillRepository>();
+builder.Services.AddScoped<IBarcodeRepository, BarcodeRepository>();
 builder.Services.AddScoped<IApplicationConfigurationRepository, ApplicationConfigurationRepository>();
 
 // Add configuration settings
