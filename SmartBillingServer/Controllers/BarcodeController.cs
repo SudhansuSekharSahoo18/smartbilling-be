@@ -41,6 +41,8 @@ namespace SmartBillingServer.Controllers
                 }
 
                 System.IO.File.WriteAllText(barcodeDto.FilePath, content);
+                var barcodeList = barcodeDto.BarcodeList.Where(x => x.Id != 0);
+                _barcodeRepo.RemoveRange(barcodeList);
                 return Ok(barcodeDto.BarcodeList);
             }
             catch (Exception ex)
