@@ -69,7 +69,7 @@ namespace SmartBillingServer.Controllers
             product.CreatedDateTime = DateTime.Now;
             _itemRepo.Add(product);
             var barcode = new Barcode() { ItemCode = product.Barcode, ItemName = product.ItemName,
-                Price = (int)product.SellPrice, Quantity = product.Quantity };
+                Price = (int)product.MRP, Quantity = product.Quantity };
             _barcodeRepo.Add(barcode);
 
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
