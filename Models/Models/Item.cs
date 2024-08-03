@@ -16,7 +16,7 @@ namespace Models.Models
         public required string Unit { get; set; }
         [Required]
         public int Quantity { get; set; }
-        [Required]
+        //[Required]
         public double CostPrice { get; set; }
         //[Required]
         //public double SellPrice { get; set; }

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Models.Dtos
 {
-    public class BarcodeParamDto
+    public class IdParamDto
     {
         [Required]
         public int Id { get; set; }

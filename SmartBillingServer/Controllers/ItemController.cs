@@ -96,7 +96,7 @@ namespace SmartBillingServer.Controllers
         }
 
         [HttpPost("AddToBarcode")]
-        public IActionResult AddToBarcodeById([FromBody] BarcodeParamDto dto)
+        public IActionResult AddToBarcodeById([FromBody] IdParamDto dto)
         {
             if (dto.Id == 0)
             {
@@ -120,40 +120,21 @@ namespace SmartBillingServer.Controllers
             return Ok(item);
         }
 
+        [HttpPost("Delete")]
+        public IActionResult Delete([FromBody] IdParamDto dto)
+        {
+            if (dto.Id == 0)
+            {
+                return NotFound();
+            }
+            var category = _itemRepo.Get(x => x.Id == dto.Id);
+            if (category == null)
+            {
+                return NotFound();
+            }
+            _itemRepo.Remove(category);
 
-        //[HttpPost(Name = "Delete")]
-        //public IActionResult Delete(int? id)
-        //{
-        //    if (id == null || id == 0)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var category = _categoryRepo.Get(x => x.Id == id);
-        //    if (category == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    _categoryRepo.Remove(category);
-
-        //    return Ok(category);
-        //}
-
-
-
-        //[HttpPost(Name = "Edit")]
-        //public IActionResult Edit(int? id)
-        //{
-        //    if (id == null || id == 0)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var objCategory = _db.Categories.FirstOrDefault(x => x.Id == id); 
-        //    if (objCategory == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(objCategory);
-        //}
+            return Ok(category);
+        }
     }
 }

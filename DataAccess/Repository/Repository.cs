@@ -51,7 +51,8 @@ namespace DataAccess.Repository
 
         public void Update(T entity)
         {
-            //var categoryObj = Get(x => x.Id == entity.id);
+            dbSet.Update(entity);
+            _db.SaveChanges();
         }
 
         public void Remove(T entity)
