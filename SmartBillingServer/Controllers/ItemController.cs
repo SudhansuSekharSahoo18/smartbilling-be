@@ -1,5 +1,6 @@
 using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Models.Dtos;
 using Models.Models;
 using SmartBillingServer.Models;
 
@@ -23,7 +24,7 @@ namespace SmartBillingServer.Controllers
             _barcodeRepo = barcodeRepo;
         }
 
-        [HttpGet(Name = "Item")]
+        [HttpGet("Get")]
         public IEnumerable<Item> Get()
         {
             var objCategoryList = _itemRepo.GetAll();
@@ -46,7 +47,6 @@ namespace SmartBillingServer.Controllers
             return Ok(category);
         }
 
-
         [HttpPost("Create")]
         public IActionResult Create([FromBody] Item product)
         {
@@ -68,26 +68,56 @@ namespace SmartBillingServer.Controllers
             product.CreatedById = 1;
             product.CreatedDateTime = DateTime.Now;
             _itemRepo.Add(product);
-            var barcode = new Barcode() { ItemCode = product.Barcode, ItemName = product.ItemName,
-                Price = (int)product.MRP, Quantity = product.Quantity };
+            var barcode = new Barcode()
+            {
+                ItemCode = product.Barcode,
+                ItemName = product.ItemName,
+                Price = (int)product.MRP,
+                Quantity = product.Quantity
+            };
             _barcodeRepo.Add(barcode);
 
             return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
         }
 
         [HttpPost("Update")]
-        public IActionResult Update([FromBody] Item product)
+        public IActionResult Update([FromBody] Item item)
         {
             if (ModelState.IsValid)
             {
-                _itemRepo.Update(product);
+                _itemRepo.Update(item);
             }
             else
             {
                 return BadRequest();
             }
 
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
+            return CreatedAtAction(nameof(GetById), new { id = item.Id }, item);
+        }
+
+        [HttpPost("AddToBarcode")]
+        public IActionResult AddToBarcodeById([FromBody] BarcodeParamDto dto)
+        {
+            if (dto.Id == 0)
+            {
+                return NotFound();
+            }
+            var item = _itemRepo.Get(x => x.Id == dto.Id);
+            if (item == null) 
+            { 
+                return NotFound(); 
+            }
+
+            var barcode = new Barcode()
+            {
+                ItemCode = item.Barcode,
+                ItemName = item.ItemName,
+                Price = (int)item.MRP,
+                Quantity = item.Quantity
+            };
+            _barcodeRepo.Add(barcode);
+
+            return Ok(item);
         }
 
 

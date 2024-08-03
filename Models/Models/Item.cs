@@ -18,13 +18,13 @@ namespace Models.Models
         public int Quantity { get; set; }
         [Required]
         public double CostPrice { get; set; }
-        [Required]
-        public double SellPrice { get; set; }
+        //[Required]
+        //public double SellPrice { get; set; }
         [Required]
         public double MRP { get; set; }
-        public double DiscountAmount { get; set; }
         [Range(0, 100)]
         public double DiscountPercentage { get; set; }
+        //public double DiscountAmount { get; set; }
         [Range(0, 100)]
         public double Tax { get; set; }
         public bool IsTaxInclusive { get; set; } = true;
