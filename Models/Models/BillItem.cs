@@ -12,8 +12,8 @@ namespace SmartBillingServer.Models
         public int BillId { get; set; }
         //public string? Barcode { get; set; }
         public string? ItemName { get; set; }
-        [Required]
-        public required string Unit { get; set; }
+        //[Required]
+        public string? Unit { get; set; }
         [Required]
         public int Quantity { get; set; }
         [Required]
