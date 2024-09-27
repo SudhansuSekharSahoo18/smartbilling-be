@@ -30,9 +30,18 @@ builder.Services.AddScoped<IBarcodeRepository, BarcodeRepository>();
 builder.Services.AddScoped<IApplicationConfigurationRepository, ApplicationConfigurationRepository>();
 
 // Add configuration settings
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+// builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true);
+}
+else
+{
+    builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
@@ -46,10 +55,10 @@ app.UseCors();
 
 app.UseHttpsRedirection();
 
-//app.UseCors(builder => builder.WithOrigins("http://192.168.0.100:85/")
-//.AllowAnyOrigin()
-//.AllowAnyMethod()
-//.AllowAnyHeader());
+app.UseCors(builder => builder.WithOrigins("http://localhost:3000/")
+.AllowAnyOrigin()
+.AllowAnyMethod()
+.AllowAnyHeader());
 
 app.UseAuthorization();
 
