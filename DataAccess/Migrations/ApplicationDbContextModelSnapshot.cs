@@ -38,7 +38,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ApplicationConfiguration");
+                    b.ToTable("ApplicationConfiguration", (string)null);
 
                     b.HasData(
                         new
@@ -84,7 +84,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.Employee", b =>
@@ -128,7 +128,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
 
                     b.HasData(
                         new
@@ -208,7 +208,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Items");
+                    b.ToTable("Items", (string)null);
                 });
 
             modelBuilder.Entity("SmartBillingServer.Models.Barcode", b =>
@@ -237,7 +237,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Barcodes");
+                    b.ToTable("Barcodes", (string)null);
                 });
 
             modelBuilder.Entity("SmartBillingServer.Models.Bill", b =>
@@ -283,7 +283,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Bills");
+                    b.ToTable("Bills", (string)null);
                 });
 
             modelBuilder.Entity("SmartBillingServer.Models.BillItem", b =>
@@ -322,7 +322,7 @@ namespace DataAccess.Migrations
 
                     b.HasIndex("BillId");
 
-                    b.ToTable("BillItem");
+                    b.ToTable("BillItem", (string)null);
                 });
 
             modelBuilder.Entity("SmartBillingServer.Models.Category", b =>
@@ -343,7 +343,7 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Models.Models.Item", b =>

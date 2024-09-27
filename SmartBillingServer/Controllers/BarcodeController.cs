@@ -51,6 +51,23 @@ namespace SmartBillingServer.Controllers
             }
         }
 
+        [HttpDelete("Delete/{id}")]
+        public IActionResult Delete(int id)
+        {
+            if (id == 0)
+            {
+                return NotFound();
+            }
+            var barcode = _barcodeRepo.Get(x => x.Id == id);
+            if (barcode == null)
+            {
+                return NotFound();
+            }
+            _barcodeRepo.Remove(barcode);
+
+            return NoContent();
+        }
+
 
 
 

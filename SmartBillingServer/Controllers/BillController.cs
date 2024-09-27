@@ -1,5 +1,6 @@
 using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
+using SmartBillingServer.Helper;
 using SmartBillingServer.Models;
 
 namespace SmartBillingServer.Controllers
@@ -48,7 +49,7 @@ namespace SmartBillingServer.Controllers
             {
                 return BadRequest();
             }
-            
+
             bill.CreatedDateTime = DateTime.Now;
             _billRepo.Add(bill);
             return CreatedAtAction(nameof(GetById), new { id = bill.Id }, bill);
@@ -58,14 +59,15 @@ namespace SmartBillingServer.Controllers
         [HttpGet("GenerateSaleReport")]
         public async Task<IActionResult> GetSaleReport(int month, int year)
         {
-            var bills = _billRepo.Get(x => x.CreatedDateTime.Year == year && x.CreatedDateTime.Month > (month - 1) && x.CreatedDateTime.Month <= month);
-            if (bills == null)
+            IEnumerable<Bill> bills = _billRepo.GetRange(x => x.CreatedDateTime.Year == year && x.CreatedDateTime.Month > (month - 1) && x.CreatedDateTime.Month <= month,
+                includeProperties: "BillItems");
+            if (!bills.Any())
             {
-                bills = new Bill();
+                bills = [];
                 // return BadRequest("File not found");
             }
 
-            var content = bills.ToString();
+            var content = bills.BillToCSV();
             var fileName = "saleReport_" + month + "_" + year;
             var filePath = $"./{fileName}.csv";
 
@@ -95,6 +97,7 @@ namespace SmartBillingServer.Controllers
             memory.Position = 0;
 
             return File(memory, GetContentType(filePath), Path.GetFileName(filePath));
+            // Delete file after sending
         }
 
         private string GetContentType(string path)
