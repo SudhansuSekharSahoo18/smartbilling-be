@@ -3,3 +3,4 @@ Debug/
 .vs/
 obj/
 /SmartBillingServer/appsettings.json
+/SmartBillingServer/temp

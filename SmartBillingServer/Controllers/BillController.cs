@@ -2,6 +2,7 @@ using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
 using SmartBillingServer.Helper;
 using SmartBillingServer.Models;
+using System.Globalization;
 
 namespace SmartBillingServer.Controllers
 {
@@ -59,17 +60,19 @@ namespace SmartBillingServer.Controllers
         [HttpGet("GenerateSaleReport")]
         public async Task<IActionResult> GetSaleReport(int month, int year)
         {
+            var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
+
             IEnumerable<Bill> bills = _billRepo.GetRange(x => x.CreatedDateTime.Year == year && x.CreatedDateTime.Month > (month - 1) && x.CreatedDateTime.Month <= month,
                 includeProperties: "BillItems");
             if (!bills.Any())
             {
                 bills = [];
-                // return BadRequest("File not found");
             }
 
-            var content = bills.BillToCSV();
-            var fileName = "saleReport_" + month + "_" + year;
-            var filePath = $"./{fileName}.csv";
+            var content = bills.BillToSaleReport(monthName, year);
+            var fileName = "saleReport_" + monthName + "_" + year;
+            Directory.CreateDirectory("temp");
+            var filePath = $"./temp/{fileName}.csv";
 
             System.IO.File.WriteAllText(filePath, content);
 
@@ -77,12 +80,6 @@ namespace SmartBillingServer.Controllers
             {
                 return BadRequest("Filename is not provided.");
             }
-
-            //var filePath = Path.Combine(_env.ContentRootPath, "Files", fileName);
-
-            // return as Download
-            //var filePath = Path.Combine(fileName, "Files", "saleReport.csv");
-            //var filePath = fileName;
 
             if (!System.IO.File.Exists(filePath))
             {
