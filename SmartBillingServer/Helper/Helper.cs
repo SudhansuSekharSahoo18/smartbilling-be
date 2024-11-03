@@ -17,9 +17,9 @@ namespace SmartBillingServer.Helper
                 // Date, Quantity, Amount, Net Value, CGST 2.5%, SGST 2.5%, Net Value, CGST 6%, SGST 6%, Net Value, CGST 9%, SGST 9%, 
                 content += $"{item.CreatedDateTime.ToString("MM/dd/yyyy")}, {item.BillItems.Sum(x => x.Quantity)}, {item.TotalAmount}, " +
                     // Add Tax based calculation 
-                    $"{Math.Round(item.TotalAmount * 100 / 105, 2)}, {Math.Round(item.TotalAmount - item.TotalAmount * 100 / 105, 2)}, {Math.Round(item.TotalAmount - item.TotalAmount * 100 / 105, 2)}, " +
-                    $"{Math.Round(item.TotalAmount * 100 / 112, 2)}, {Math.Round(item.TotalAmount - item.TotalAmount * 100 / 112, 2)}, {Math.Round(item.TotalAmount - item.TotalAmount * 100 / 112, 2)}, " +
-                    $"{Math.Round(item.TotalAmount * 100 / 118, 2)}, {Math.Round(item.TotalAmount - item.TotalAmount * 100 / 118, 2)}, {Math.Round(item.TotalAmount - item.TotalAmount * 100 / 118, 2)}\n";
+                    $"{Math.Round(item.TotalAmount * 100 / 105, 2)}, {Math.Round((item.TotalAmount - item.TotalAmount * 100 / 105) / 2, 2)}, {Math.Round((item.TotalAmount - item.TotalAmount * 100 / 105) / 2, 2)}, " +
+                    $"{Math.Round(item.TotalAmount * 100 / 112, 2)}, {Math.Round((item.TotalAmount - item.TotalAmount * 100 / 112) / 2, 2)}, {Math.Round((item.TotalAmount - item.TotalAmount * 100 / 112) / 2, 2)}, " +
+                    $"{Math.Round(item.TotalAmount * 100 / 118, 2)}, {Math.Round((item.TotalAmount - item.TotalAmount * 100 / 118) / 2, 2)}, {Math.Round((item.TotalAmount - item.TotalAmount * 100 / 118) / 2, 2)}\n";
             }
 
             return content;
