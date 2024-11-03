@@ -42,7 +42,6 @@ namespace SmartBillingServer.Controllers
             return Ok(bill);
         }
 
-
         [HttpPost("Create")]
         public IActionResult Create([FromBody] Bill bill)
         {
@@ -56,6 +55,15 @@ namespace SmartBillingServer.Controllers
             return CreatedAtAction(nameof(GetById), new { id = bill.Id }, bill);
         }
 
+        [HttpGet("GetTotalSaleByDate")]
+        public ActionResult<double> GetTotalSaleByDate(string? date)
+        {
+            DateTime localDate = date == null ? DateTime.Now : DateTime.Parse(date);
+            var bills = _billRepo.GetRange(x => x.CreatedDateTime.Date == localDate.Date);
+            double todalAmount = bills.Sum(x => x.TotalAmount);
+
+            return Ok(todalAmount);
+        }
 
         [HttpGet("GenerateSaleReport")]
         public async Task<IActionResult> GetSaleReport(int month, int year)
