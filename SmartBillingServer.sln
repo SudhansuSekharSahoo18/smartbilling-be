@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utility", "Utility\Utility.csproj", "{B952F08C-F63C-48CA-A049-5CBA8E7D9848}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartBilling.Tests", "SmartBilling.Tests\SmartBilling.Tests.csproj", "{77A8799C-EC4A-41EE-B284-505883AF3C47}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{B952F08C-F63C-48CA-A049-5CBA8E7D9848}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B952F08C-F63C-48CA-A049-5CBA8E7D9848}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B952F08C-F63C-48CA-A049-5CBA8E7D9848}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77A8799C-EC4A-41EE-B284-505883AF3C47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77A8799C-EC4A-41EE-B284-505883AF3C47}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77A8799C-EC4A-41EE-B284-505883AF3C47}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77A8799C-EC4A-41EE-B284-505883AF3C47}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
