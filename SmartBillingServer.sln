@@ -5,13 +5,15 @@ VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartBillingServer", "SmartBillingServer\SmartBillingServer.csproj", "{884C74C4-2D93-4380-BEEF-087A887727D6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataAccess", "DataAccess\DataAccess.csproj", "{D142D76C-D50D-41B6-B96B-0972BF67E562}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataAccess", "DataAccess\DataAccess.csproj", "{D142D76C-D50D-41B6-B96B-0972BF67E562}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Models", "Models\Models.csproj", "{EA975909-2248-4156-A1B1-EA79FB1E9992}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Models", "Models\Models.csproj", "{EA975909-2248-4156-A1B1-EA79FB1E9992}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utility", "Utility\Utility.csproj", "{B952F08C-F63C-48CA-A049-5CBA8E7D9848}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utility", "Utility\Utility.csproj", "{B952F08C-F63C-48CA-A049-5CBA8E7D9848}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartBilling.Tests", "SmartBilling.Tests\SmartBilling.Tests.csproj", "{77A8799C-EC4A-41EE-B284-505883AF3C47}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartBilling.Tests", "SmartBilling.Tests\SmartBilling.Tests.csproj", "{77A8799C-EC4A-41EE-B284-505883AF3C47}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartBilling.Desktop", "SmartBilling.Desktop\SmartBilling.Desktop.csproj", "{B883467F-278F-42AD-B389-768EE2E80DFC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{77A8799C-EC4A-41EE-B284-505883AF3C47}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{77A8799C-EC4A-41EE-B284-505883AF3C47}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{77A8799C-EC4A-41EE-B284-505883AF3C47}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B883467F-278F-42AD-B389-768EE2E80DFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B883467F-278F-42AD-B389-768EE2E80DFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B883467F-278F-42AD-B389-768EE2E80DFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B883467F-278F-42AD-B389-768EE2E80DFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
