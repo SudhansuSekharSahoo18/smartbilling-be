@@ -1,6 +1,7 @@
 using DataAccess.Repository;
 using Microsoft.EntityFrameworkCore;
 using SmartBillingServer.DataAccess.Data;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,5 +70,16 @@ app.UseCors(builder => builder.WithOrigins("http://localhost:3000/")
 app.UseAuthorization();
 
 app.MapControllers();
+
+var uri = app.Environment.IsDevelopment() ? "https://localhost:7271" : "http://localhost:5000";
+
+var lifetime = app.Lifetime;
+lifetime.ApplicationStarted.Register(() =>
+{
+    Process.Start(new ProcessStartInfo("cmd", $"/c start {uri}")
+    {
+        CreateNoWindow = true
+    });
+});
 
 app.Run();
