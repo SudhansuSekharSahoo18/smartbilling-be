@@ -33,6 +33,12 @@ builder.Services.AddScoped<IApplicationConfigurationRepository, ApplicationConfi
 // builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
 var app = builder.Build();
+#region For running react UI in the while running the backend API
+
+app.UseStaticFiles();                // Serve static files from wwwroot
+app.MapFallbackToFile("index.html"); // Support React routing
+
+#endregion
 
 if (app.Environment.IsDevelopment())
 {

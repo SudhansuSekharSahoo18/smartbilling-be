@@ -39,6 +39,9 @@ Then click on Publish
 ### How To Open a port on IIS - Access from inside and outside network
 https://www.youtube.com/watch?v=AaRc8048HB0&ab_channel=IntCoder
 
+### To add react build in dotnet API
+Copy the react build content to wwwroot/ 
+
 
 # EntityFramework
 
