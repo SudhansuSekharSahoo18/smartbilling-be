@@ -1,0 +1,19 @@
+.print-area {
+    /* opacity: 0;
+    height: 0px; */
+    visibility: collapse;
+}
+
+.customerDetails {
+    border: 5px solid rgb(32, 32, 32);
+    border-radius: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: 15px;
+    padding: 15px;
+    width: 300px;
+}
+
+.billingSection {
+    display: flex;
+}

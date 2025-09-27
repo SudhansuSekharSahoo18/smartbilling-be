@@ -1,0 +1,41 @@
+.dropdown {
+  position: relative;
+  display: inline-block;
+  margin-right: 20px;
+  /* background-color: cyan; */
+}
+.dropdown label{
+  width: 150px;
+  display: inline-block;
+  font-size: small;
+}
+.dropdown select{
+  font-size: medium;
+  width: 180px;
+  padding: 5px;
+  background-color: rgb(226, 225, 225);
+  border: 0px;
+  border-radius: 4px;
+  
+  font-size: small;
+  padding-left: 10px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.dropdown-item {
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+.dropdown input{
+  border: 0px;
+}
+
+.textarea{
+  width: 100px;
+}

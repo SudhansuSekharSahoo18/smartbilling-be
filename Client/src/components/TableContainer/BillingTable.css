@@ -1,0 +1,99 @@
+.table-container {
+  padding: 0px;
+  background-color: white;
+}
+
+.data-table {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 10px;
+  height: 400px;
+}
+
+.table-content{
+  overflow-y: auto; 
+}
+
+/* Make the header sticky */
+.table-content thead th {
+  position: sticky;
+  top: 0;
+  background-color: #f1f1f1; /* Add background to make sticky header visible */
+  z-index: 1;
+}
+
+.data-table table {
+  border-collapse: collapse;
+  margin: 0px 0px;
+  font-size: 18px;
+  text-align: left;
+}
+
+.data-table table th, table td {
+  padding: 5px 5px;
+  border: 1px solid #ddd;
+}
+
+.data-table table th {
+  background-color: rgb(206, 206, 206);
+  color: black;
+  font-size: small;
+}
+
+.data-table table td{
+  background-color: white;
+  height: 30px;
+  font-size: small;
+}
+.data-table table td input{
+  height: 100%;
+  font-size: small;
+  /* padding: 5px; */
+  padding-left: 10px;
+}
+.data-table table td button{
+  font-size: small;
+  padding: 8px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  margin: 0px;
+  /* margin-left: 5px; */
+  background-color: red;
+}
+
+.data-table table tr:nth-of-type(even) {
+  background-color: #f3f3f3;
+}
+  
+.data-table table tr:nth-of-type(odd) {
+  background-color: #e8e8e8;
+}
+
+.data-table table tr:hover {
+  background-color: #c9c9c9;
+}
+
+.data-table table tr:last-of-type {
+  border-bottom: 2px solid #0b6f19;
+}
+
+.total-sum {
+  margin-left: 1020px;
+  text-align: left;
+  font-size: 20px;
+}  
+
+.data-table table td {
+  width: 500px;
+}
+
+.numberInput{
+  width: 80px;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

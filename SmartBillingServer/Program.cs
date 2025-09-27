@@ -1,6 +1,7 @@
 using DataAccess.Repository;
 using Microsoft.EntityFrameworkCore;
 using SmartBillingServer.DataAccess.Data;
+using System.Diagnostics;
 
 internal class Program
 {
@@ -38,16 +39,22 @@ internal class Program
             // Add configuration settings
             // builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
-            var app = builder.Build();
+var app = builder.Build();
+#region For running react UI in the while running the backend API
 
-            if (app.Environment.IsDevelopment())
-            {
-                builder.Configuration.AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true);
-            }
-            else
-            {
-                builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-            }
+app.UseStaticFiles();                // Serve static files from wwwroot
+app.MapFallbackToFile("index.html"); // Support React routing
+
+#endregion
+
+if (app.Environment.IsDevelopment())
+{
+    builder.Configuration.AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true);
+}
+else
+{
+    builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+}
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
@@ -70,12 +77,24 @@ internal class Program
 
             app.MapControllers();
 
-            app.Run();
+var uri = app.Environment.IsDevelopment() ? "https://localhost:7271" : "http://localhost:5000";
+
+var lifetime = app.Lifetime;
+lifetime.ApplicationStarted.Register(() =>
+{
+    Process.Start(new ProcessStartInfo("cmd", $"/c start {uri}")
+    {
+        CreateNoWindow = true
+    });
+});
+
+app.Run();
+
         }
         catch (Exception ex)
         {
             string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
-            if(!Directory.Exists(folderPath))
+            if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
@@ -84,6 +103,6 @@ internal class Program
             File.AppendAllText(filePath, ex.Message);
             throw;
         }
-        
+
     }
 }
