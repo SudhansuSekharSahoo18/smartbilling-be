@@ -1,0 +1,18 @@
+.report table {
+    border: 1px solid black;
+}
+.report th, .report td {
+    border: none;
+}
+.report table {
+    margin: 10px 0px;
+}
+
+.report th, .report td {
+    font-size: 10px;
+    border-bottom: 1px dotted black; 
+}
+
+.report div {
+    text-align: left;
+}

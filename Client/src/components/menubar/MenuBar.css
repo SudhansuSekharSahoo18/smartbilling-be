@@ -1,0 +1,32 @@
+.menu-bar {
+    width: 100px;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #333;
+    padding-top: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .menu-bar ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .menu-bar ul li {
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .menu-bar ul li a {
+    color: white;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s;
+  }
+  
+  .menu-bar ul li a:hover {
+    background-color: #575757;
+  }
+  

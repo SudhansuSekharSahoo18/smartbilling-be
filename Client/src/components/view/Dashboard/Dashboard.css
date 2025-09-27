@@ -1,0 +1,7 @@
+.itemsPage{
+    height: calc(100vh-20px);
+}
+
+.dashboard {
+    color: white;
+}
