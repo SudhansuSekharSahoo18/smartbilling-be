@@ -55,6 +55,33 @@ namespace SmartBillingServer.Controllers
             return CreatedAtAction(nameof(GetById), new { id = bill.Id }, bill);
         }
 
+        [HttpDelete("Delete/{id}")]
+        public IActionResult Delete(int id)
+        {
+            if (id == 0)
+            {
+                return BadRequest("Invalid ID provided.");
+            }
+
+            var bill = _billRepo.Get(x => x.Id == id, includeProperties: "BillItems");
+            if (bill == null)
+            {
+                return NotFound($"Bill with ID {id} not found.");
+            }
+
+            try
+            {
+                _billRepo.Remove(bill);
+                _logger.LogInformation($"Bill with ID {id} deleted successfully.");
+                return Ok(new { message = $"Bill with ID {id} deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting bill with ID {id}");
+                return StatusCode(500, "An error occurred while deleting the bill.");
+            }
+        }
+
         [HttpGet("GetTotalSaleByDate")]
         public ActionResult<double> GetTotalSaleByDate(string? date)
         {
