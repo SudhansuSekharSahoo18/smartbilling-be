@@ -7,6 +7,7 @@ import CustomInput from '../../CustomInput/CustomInput';
 import Dropdown from '../../Dropdown/Dropdown';
 import { formatDate } from '../../../Helper/dateHelper.js'
 import { CreateBill, GetAllItems } from '../../../APIEndpoints.js'
+import { getBackendUrl, getConfig } from '../../../Helper/apiHelper.js';
 import { calculateNetAmount } from './BillingManager.js'
 
 const Billing = () => {
@@ -141,14 +142,12 @@ const Billing = () => {
   }, []);
 
   useEffect(() => {
-    fetch('/config.json')
-      .then(response => response.json())
-      .then(data => {
-        setIpAddress(data.backendUrl + 'api/')
-        setShopName(data.shopName)
-        setShopAddress(data.shopAddress)
-        setShopGstNumber(data.shopGSTNumber)
-        const url = data.backendUrl + 'api/';
+    Promise.all([getBackendUrl(), getConfig()])
+      .then(([url, data]) => {
+        setIpAddress(url);
+        setShopName(data.shopName);
+        setShopAddress(data.shopAddress);
+        setShopGstNumber(data.shopGSTNumber);
         fetch(url + GetAllItems)
           .then(response => {
             if (!response.ok) {

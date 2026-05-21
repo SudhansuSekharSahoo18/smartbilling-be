@@ -6,6 +6,7 @@ import { GetAllBill } from '../../../APIEndpoints.js'
 import { ReactToPrint } from 'react-to-print';
 import Report from '../../Report/Report';
 import { formatDate } from '../../../Helper/dateHelper.js'
+import { getBackendUrl, getConfig } from '../../../Helper/apiHelper.js';
 import { DeleteBill } from '../../../APIEndpoints.js'
 
 const Bills = (props) => {
@@ -107,10 +108,8 @@ const Bills = (props) => {
   }, [billNumber]);
 
   useEffect(() => {
-    fetch('/config.json')
-      .then(response => response.json())
-      .then(data => {
-        const url = data.backendUrl + 'api/';
+    Promise.all([getBackendUrl(), getConfig()])
+      .then(([url, data]) => {
         setShopName(data.shopName)
         setShopAddress(data.shopAddress)
         setShopGstNumber(data.shopGSTNumber)

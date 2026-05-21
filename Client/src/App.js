@@ -12,6 +12,7 @@ import ErrorView from './components/view/Error/ErrorView';
 import ErrorPageNotFoundView from './components/view/Error/ErrorPageNotFoundVew';
 import Setting from './components/view/Setting/Setting';
 import Dashboard from './components/view/Dashboard/Dashboard';
+import { getBackendUrl, getConfig } from './Helper/apiHelper.js';
 
 const App = () => {
   const [ipAddress, setIpAddress] = useState(null);
@@ -34,13 +35,9 @@ const App = () => {
   // };
 
   useEffect(() => {
-    fetch('/config.json')
-      .then(response => response.json())
-      .then(data => {
-        if (process.env.REACT_APP_ENVIRONMENT === 'DEVELOPMENT')
-          setIpAddress(data.backendUrl + 'api/')
-        else if (process.env.REACT_APP_ENVIRONMENT === 'PRODUCTION')
-          setIpAddress(data.backendUrl_PROD + 'api/')
+    Promise.all([getBackendUrl(), getConfig()])
+      .then(([url, data]) => {
+        setIpAddress(url);
         setBarcodeGenerateFilePath(data.BarcodeGenerateFilePath);
       })
       .catch(error => {

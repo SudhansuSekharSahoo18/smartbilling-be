@@ -7,6 +7,7 @@ import BarcodeReport from '../../Report/BarcodeReport';
 import { DeleteBarcode, GetBarcodeList } from '../../../APIEndpoints.js'
 import FolderChooser from '../../FolderChooser/FolderChooser.jsx';
 import { GenerateBarcode } from '../../../APIEndpoints.js'
+import { getBackendUrl, getConfig } from '../../../Helper/apiHelper.js';
 
 
 const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
@@ -116,12 +117,10 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
   };
 
   useEffect(() => {
-    fetch('/config.json')
-      .then(response => response.json())
-      .then(data => {
-        const url = data.backendUrl + 'api/';
-        setIp(url)
-        setBarcodeFilePath(data.BarcodeGenerateFilePath)
+    Promise.all([getBackendUrl(), getConfig()])
+      .then(([url, data]) => {
+        setIp(url);
+        setBarcodeFilePath(data.BarcodeGenerateFilePath);
         fetch(url + GetBarcodeList)
           .then(response => {
             if (!response.ok) {

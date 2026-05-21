@@ -5,7 +5,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import CustomInput from '../../CustomInput/CustomInput.jsx';
 import './Dashboard.css';
 import Dropdown from '../../Dropdown/Dropdown.jsx';
-import { postRequest, patchRequest } from '../../../Helper/apiHelper.js';
+import { postRequest, patchRequest, getBackendUrl } from '../../../Helper/apiHelper.js';
 import CustomCheckBox from '../../CustomCheckBox/CustomCheckBox.jsx';
 import { GetTotalSaleByDate } from '../../../APIEndpoints.js'
 
@@ -15,26 +15,20 @@ const Dashboard = (props) => {
 
 
   useEffect(() => {
-    fetch('/config.json')
-      .then(response => response.json())
-      .then(data => {
-        const url = data.backendUrl + 'api/';
-        fetch(url + GetTotalSaleByDate)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            // data.length = 5
-            setTotalSale(data);
-          })
-          .catch(error => {
-            console.log('error - > ' + error);
-          });
+    getBackendUrl()
+      .then(url => fetch(url + GetTotalSaleByDate))
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
       })
-      .catch(error => console.error('Error fetching config:', error));
+      .then(data => {
+        setTotalSale(data);
+      })
+      .catch(error => {
+        console.log('error - > ' + error);
+      });
   }, []);
 
   return (

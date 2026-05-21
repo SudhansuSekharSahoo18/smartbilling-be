@@ -5,7 +5,7 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import CustomInput from '../../CustomInput/CustomInput';
 import './Items.css';
 import Dropdown from '../../Dropdown/Dropdown';
-import { postRequest } from '../../../Helper/apiHelper.js';
+import { postRequest, getBackendUrl } from '../../../Helper/apiHelper.js';
 import CustomCheckBox from '../../CustomCheckBox/CustomCheckBox.jsx';
 import { AddToBarcode, GetAllItems, CreateItem, UpdateItem, DeleteItem, Export, Import } from '../../../APIEndpoints.js'
 import FileUpload from '../../FileUpload/FileUpload.jsx';
@@ -300,11 +300,9 @@ const Items = (props) => {
     // setSellPrice(200);
     // setTax(0);
 
-    fetch('/config.json')
-      .then(response => response.json())
-      .then(data => {
-        const url = data.backendUrl + 'api/';
-        setIp(data.backendUrl);
+    getBackendUrl()
+      .then(url => {
+        setIp(url.slice(0, -4));
 
         fetch(url + GetAllItems)
           .then(response => {
