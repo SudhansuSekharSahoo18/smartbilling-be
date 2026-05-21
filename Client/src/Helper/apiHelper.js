@@ -25,7 +25,7 @@ export const getBackendUrl = () => {
       } catch {
         throw new Error(`Invalid backend URL: "${base}"`);
       }
-      return base + 'api/';
+      return base.replace(/\/$/, '') + '/api/';
     });
   }
   return backendUrlPromise;

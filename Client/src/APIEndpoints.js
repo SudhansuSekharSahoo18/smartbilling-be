@@ -19,3 +19,8 @@ export const GenerateSaleReport = 'bill/GenerateSaleReport';
 export const GetBarcodeList = 'barcode';
 export const GenerateBarcode = 'Barcode/GenerateBarcode';
 export const DeleteBarcode = 'Barcode/Delete/';
+
+// Health
+export const HealthApi = 'health';
+export const HealthDb = 'health/db';
+export const HealthConfig = 'health/config';

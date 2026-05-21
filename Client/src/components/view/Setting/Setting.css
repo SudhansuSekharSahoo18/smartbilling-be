@@ -2,3 +2,104 @@ label {
     font-size: medium;
     font-weight: bold;
 }
+
+/* Health Check Page */
+.hc-page {
+    padding: 24px;
+    color: #e2e8f0;
+}
+
+.hc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+}
+
+.hc-title {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+    color: #f1f5f9;
+}
+
+.hc-btn {
+    background-color: #2563eb;
+    color: white;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 0;
+}
+
+.hc-btn:hover {
+    background-color: #1d4ed8;
+}
+
+/* Cards */
+.hc-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.hc-card {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 20px;
+    transition: border-color 0.2s;
+}
+
+.hc-card--ok    { border-left: 4px solid #22c55e; }
+.hc-card--error { border-left: 4px solid #ef4444; }
+.hc-card--loading { border-left: 4px solid #f59e0b; }
+.hc-card--idle  { border-left: 4px solid #475569; }
+
+.hc-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.hc-card__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+
+.hc-card__desc {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin: 0 0 10px 0;
+    line-height: 1.5;
+}
+
+.hc-card__message {
+    font-size: 0.82rem;
+    color: #cbd5e1;
+    background-color: #0f172a;
+    border-radius: 6px;
+    padding: 8px 10px;
+    margin: 0;
+    word-break: break-word;
+}
+
+/* Badges */
+.hc-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.hc-badge--idle    { background-color: #334155; color: #94a3b8; }
+.hc-badge--loading { background-color: #78350f; color: #fcd34d; }
+.hc-badge--ok      { background-color: #14532d; color: #86efac; }
+.hc-badge--error   { background-color: #7f1d1d; color: #fca5a5; }
