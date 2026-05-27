@@ -11,7 +11,8 @@ namespace Models.Models
         [MaxLength(30)]
         public required string ItemName { get; set; }
         public string? Description { get; set; }
-        public string? HSNCode { get; set; }
+        [Required]
+        public required string HSNCode { get; set; }
         [Required]
         public required string Unit { get; set; }
         [Required]

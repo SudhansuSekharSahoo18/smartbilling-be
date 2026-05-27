@@ -96,6 +96,13 @@ const Items = (props) => {
       isValid = false;
     }
 
+    // validate HSN Code
+    if (hsnCode === '' || hsnCode === undefined) {
+      const message = 'Please provide HSN Code';
+      errorMessages.push(message);
+      isValid = false;
+    }
+
     // validate tax
     if (tax === 0 || tax === undefined) {
       const message = 'Please provide Tax';
