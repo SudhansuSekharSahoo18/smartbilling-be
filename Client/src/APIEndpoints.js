@@ -13,6 +13,8 @@ export const CreateBill = 'bill/create';
 export const UpdateBill = 'bill/update';
 export const DeleteBill = 'bill/delete/';
 export const GetTotalSaleByDate = 'bill/GetTotalSaleByDate';
+export const GetMonthlySales = 'bill/GetMonthlySales';
+export const GetDailySales = 'bill/GetDailySales';
 export const GenerateSaleReport = 'bill/GenerateSaleReport';
 
 // Barcode

@@ -132,6 +132,48 @@ namespace SmartBillingServer.Controllers
             // Delete file after sending
         }
 
+        [HttpGet("GetDailySales")]
+        public ActionResult<IEnumerable<object>> GetDailySales(int? month, int? year)
+        {
+            int targetMonth = month ?? DateTime.Now.Month;
+            int targetYear = year ?? DateTime.Now.Year;
+            int daysInMonth = DateTime.DaysInMonth(targetYear, targetMonth);
+
+            var bills = _billRepo.GetRange(x =>
+                x.CreatedDateTime.Year == targetYear && x.CreatedDateTime.Month == targetMonth);
+
+            var dailySales = Enumerable.Range(1, daysInMonth).Select(day => new
+            {
+                day,
+                totalSale = bills.Where(b => b.CreatedDateTime.Day == day).Sum(b => b.TotalAmount)
+            }).ToList();
+
+            return Ok(dailySales);
+        }
+
+        [HttpGet("GetMonthlySales")]
+        public ActionResult<IEnumerable<object>> GetMonthlySales(int? year)
+        {
+            // Financial year starts in April; default to current FY
+            int fyStartYear = year ?? (DateTime.Now.Month >= 4 ? DateTime.Now.Year : DateTime.Now.Year - 1);
+            int fyEndYear = fyStartYear + 1;
+
+            var bills = _billRepo.GetRange(x =>
+                (x.CreatedDateTime.Year == fyStartYear && x.CreatedDateTime.Month >= 4) ||
+                (x.CreatedDateTime.Year == fyEndYear && x.CreatedDateTime.Month <= 3));
+
+            // Apr → Mar order
+            var fyMonths = new[] { 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2, 3 };
+
+            var monthlySales = fyMonths.Select(month => new
+            {
+                month = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetAbbreviatedMonthName(month),
+                totalSale = bills.Where(b => b.CreatedDateTime.Month == month).Sum(b => b.TotalAmount)
+            });
+
+            return Ok(monthlySales);
+        }
+
         private string GetContentType(string path)
         {
             var types = new Dictionary<string, string>
