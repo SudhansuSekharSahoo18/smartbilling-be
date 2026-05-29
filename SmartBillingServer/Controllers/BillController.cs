@@ -1,8 +1,9 @@
+using System.Globalization;
+using ClosedXML.Excel;
 using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
 using SmartBillingServer.Helper;
 using SmartBillingServer.Models;
-using System.Globalization;
 
 namespace SmartBillingServer.Controllers
 {
@@ -11,12 +12,14 @@ namespace SmartBillingServer.Controllers
     public class BillController : ControllerBase
     {
         private readonly IBillRepository _billRepo;
+        private readonly IItemRepository _itemRepo;
         private readonly ILogger<BillController> _logger;
 
-        public BillController(IBillRepository db, ILogger<BillController> logger)
+        public BillController(IBillRepository db, ILogger<BillController> logger, IItemRepository itemRepo)
         {
             _billRepo = db;
             _logger = logger;
+            _itemRepo = itemRepo;
         }
 
         [HttpGet("Get")]
@@ -130,6 +133,77 @@ namespace SmartBillingServer.Controllers
 
             return File(memory, GetContentType(filePath), Path.GetFileName(filePath));
             // Delete file after sending
+        }
+
+        [HttpGet("GetTaxSummaryReport")]
+        public IActionResult GetTaxSummaryReport(int? month, int? year)
+        {
+            int targetMonth = month ?? DateTime.Now.Month;
+            int targetYear = year ?? DateTime.Now.Year;
+
+            var bills = _billRepo.GetRange(
+                x => x.CreatedDateTime.Year == targetYear && x.CreatedDateTime.Month == targetMonth,
+                includeProperties: "BillItems");
+
+            var itemDict = _itemRepo.GetAll().ToDictionary(i => i.Id);
+
+            var grouped = bills
+                .SelectMany(b => b.BillItems)
+                .Where(bi => itemDict.ContainsKey(bi.ItemId) && itemDict[bi.ItemId].Tax > 0)
+                .GroupBy(bi => new { itemDict[bi.ItemId].HSNCode, itemDict[bi.ItemId].Tax })
+                .Select(g =>
+                {
+                    var assessableValue = Math.Round(g.Sum(bi => bi.Amount) / (1.0 + g.Key.Tax / 100.0), 2);
+                    return new
+                    {
+                        HSNCode = g.Key.HSNCode,
+                        TaxRate = g.Key.Tax,
+                        TotalQuantity = g.Sum(bi => bi.Quantity),
+                        TotalAmount = Math.Round(g.Sum(bi => bi.Amount), 2),
+                        AssessableValue = assessableValue,
+                        CGST = Math.Round(g.Key.Tax / 200.0 * assessableValue, 2),
+                        SGST = Math.Round(g.Key.Tax / 200.0 * assessableValue, 2),
+                    };
+                })
+                .OrderBy(x => x.HSNCode)
+                .ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Tax Summary");
+
+            // Header row
+            var headers = new[] { "HSN Code", "Tax Rate (%)", "Total Quantity", "Total Amount (₹)", "Assessable Value (₹)", "CGST (₹)", "SGST (₹)" };
+            for (int col = 0; col < headers.Length; col++)
+            {
+                var cell = ws.Cell(1, col + 1);
+                cell.Value = headers[col];
+                cell.Style.Font.Bold = true;
+                cell.Style.Fill.BackgroundColor = XLColor.FromHtml("#4F81BD");
+                cell.Style.Font.FontColor = XLColor.White;
+            }
+
+            // Data rows
+            for (int r = 0; r < grouped.Count; r++)
+            {
+                var row = grouped[r];
+                ws.Cell(r + 2, 1).Value = row.HSNCode;
+                ws.Cell(r + 2, 2).Value = row.TaxRate;
+                ws.Cell(r + 2, 3).Value = row.TotalQuantity;
+                ws.Cell(r + 2, 4).Value = row.TotalAmount;
+                ws.Cell(r + 2, 5).Value = row.AssessableValue;
+                ws.Cell(r + 2, 6).Value = row.CGST;
+                ws.Cell(r + 2, 7).Value = row.SGST;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(targetMonth);
+            var filename = $"TaxSummary_{monthName}_{targetYear}.xlsx";
+            return File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", filename);
         }
 
         [HttpGet("GetDailySales")]

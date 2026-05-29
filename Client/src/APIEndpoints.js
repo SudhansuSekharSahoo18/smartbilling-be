@@ -16,6 +16,7 @@ export const GetTotalSaleByDate = 'bill/GetTotalSaleByDate';
 export const GetMonthlySales = 'bill/GetMonthlySales';
 export const GetDailySales = 'bill/GetDailySales';
 export const GenerateSaleReport = 'bill/GenerateSaleReport';
+export const GetTaxSummaryReport = 'bill/GetTaxSummaryReport';
 
 // Barcode
 export const GetBarcodeList = 'barcode';

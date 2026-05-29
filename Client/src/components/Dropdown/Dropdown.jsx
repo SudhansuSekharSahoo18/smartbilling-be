@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Dropdown.css';
 
-const Dropdown = ({ label, options, onSelect }) => {
-  const [selectedOption, setSelectedOption] = useState(null);
-
+const Dropdown = ({ label, options, onSelect, value }) => {
   const handleOptionClick = (e) => {
     onSelect(e.target.value);
   };
@@ -11,11 +9,10 @@ const Dropdown = ({ label, options, onSelect }) => {
   return (
     <div className="dropdown">
       <label>{label} </label>
-      <select id="month" name="month" onChange={handleOptionClick}>
+      <select id="month" name="month" onChange={handleOptionClick} value={value}>
         {options.map((option) => (
           <option
             value={option.value}
-            onClick={() => handleOptionClick(option)}
             className="dropdown-item"
           >
             {option.label}
