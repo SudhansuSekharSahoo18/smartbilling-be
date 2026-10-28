@@ -75,15 +75,14 @@ npm install
 
 The React app reads the API address from `Client/public/config.json`, which is git-ignored. You need it for `npm start` (Option C), because the dev server on port 3000 isn't the API. When the API serves the UI (the desktop exe, or a production build in `wwwroot`), the file is optional: without it the UI calls the API on its own origin.
 
-Shop name, address and GSTIN are entered in the app (first-run setup / **Setting** page) and stored in the database. The `shopName`, `shopAddress`, `shopGSTNumber` and `BarcodeGenerateFilePath` keys below are only fallbacks for older setups, used until settings are saved in the app.
+Shop name, address and GSTIN are entered in the app (first-run setup / **Setting** page) and stored in the database. The `shopName`, `shopAddress` and `shopGSTNumber` keys below are only fallbacks for older setups, used until settings are saved in the app. The barcode export file is set only on the Setting page.
 
 `Client/public/config.json`:
 
 ```json
 {
-  "backendUrl_DEV": "https://localhost:7271",
+  "backendUrl_DEV": "http://localhost:5242",
   "backendUrl_PROD": "http://localhost:5000",
-  "BarcodeGenerateFilePath": "C:\\SmartBilling\\Barcode.csv",
   "shopName": "My Shop",
   "shopAddress": "Shop address line",
   "shopGSTNumber": "GSTIN0000000000"
@@ -94,12 +93,11 @@ Shop name, address and GSTIN are entered in the app (first-run setup / **Setting
 |---|---|
 | `backendUrl_DEV` | API base URL used when `REACT_APP_ENVIRONMENT` is not `PRODUCTION`. `/api/` is appended automatically. |
 | `backendUrl_PROD` | API base URL used when `REACT_APP_ENVIRONMENT=PRODUCTION`. |
-| `BarcodeGenerateFilePath` | Fallback for the barcode export file (Setting page). The folder is created if it doesn't exist. |
 | `shopName`, `shopAddress`, `shopGSTNumber` | Fallbacks for the shop details (Setting page). |
 
 Which URL is used depends on `REACT_APP_ENVIRONMENT`, which [Client/.env](Client/.env) sets to `DEVELOPMENT`.
 
-> Use the HTTPS URL (`https://localhost:7271`) for `backendUrl_DEV` when the API runs with the `https` profile. The API calls `UseHttpsRedirection`, so requests to the HTTP port get redirected, which breaks CORS preflight requests.
+> For `npm start`, run the API with the **`http`** profile and keep `backendUrl_DEV` at `http://localhost:5242`. The sign-in cookie is only sent between `http://localhost:3000` and an `http://` API. With the `https` profile, the API also redirects HTTP to HTTPS, which breaks CORS preflight requests.
 
 ### 2.3 Server configuration
 
@@ -153,7 +151,7 @@ The `https` / `http` profiles enable the ASP.NET Core **SPA proxy**, which runs 
 | React UI | http://localhost:3000 |
 | API (https profile) | https://localhost:7271 (also http://localhost:5242) |
 | API (http profile) | http://localhost:5242 |
-| Swagger UI | https://localhost:7271/swagger |
+| Swagger UI (Development only) | https://localhost:7271/swagger |
 
 ### Option B — Command line (API and UI together)
 
@@ -162,7 +160,7 @@ The `https` / `http` profiles enable the ASP.NET Core **SPA proxy**, which runs 
 dotnet run --project SmartBillingServer --launch-profile https
 ```
 
-This starts the API on https://localhost:7271 and http://localhost:5242, and the SPA proxy starts the React dev server on http://localhost:3000. On startup the server also opens `https://localhost:7271` in your browser.
+This starts the API on https://localhost:7271 and http://localhost:5242, and the SPA proxy starts the React dev server on http://localhost:3000, which the launch profile opens in your browser.
 
 ### Option C — Run API and UI separately
 
@@ -179,7 +177,7 @@ cd Client
 npm start
 ```
 
-Then open http://localhost:3000. CORS on the API allows any origin, so the React dev server can call it directly.
+Then open http://localhost:3000. In Development, CORS on the API allows only `http://localhost:3000`. To allow other origins, list them in `Cors:Origins` in appsettings.
 
 ### Desktop app
 
@@ -258,17 +256,26 @@ npm test
 
 ---
 
-## 5. Health checks
+## 5. Sign-in and health checks
+
+Everyone signs in, including in the desktop app.
+- **First start.** The app asks you to create the admin account (user name and password, at least 6 characters). This replaces the seeded `System` / `12345` account, which can't be used to sign in.
+- **Sessions.** The sign-in cookie lasts until the app or browser is closed.
+- **Wrong passwords.** After 5 wrong passwords, that user name is locked for a minute.
+- **Changing the password:** **Setting → Password**.
+- **Staff accounts.** Admins manage accounts on the **Staff** page, which only admins see: add, edit, make admin, reset password and delete. There is always at least one admin, and you can't delete your own account.
+- **Ending sessions.** Resetting or changing a password signs that account out on every other PC, and so does deleting it. Admin rights that are given or taken away apply straight away.
+- **API calls** need the `SmartBilling.Auth` cookie from `POST /api/auth/login`. Only `GET /api/health`, `GET /api/auth/status`, and the login, setup and logout calls work without it. Other calls answer 401.
 
 | Endpoint | Checks |
 |---|---|
-| `GET /api/health` | The API is running |
+| `GET /api/health` | The API is running (no sign-in needed) |
 | `GET /api/health/db` | The SQLite database can be opened |
 | `GET /api/health/config` | The shop details have been entered; also shows the database file in use |
 
 Shop settings: `GET /api/settings`, `POST /api/settings/save`.
 
-All other endpoints are listed in Swagger at `/swagger`. The client-side routes are in [Client/src/APIEndpoints.js](Client/src/APIEndpoints.js).
+In Development, all other endpoints are listed in Swagger at `/swagger`. The client-side routes are in [Client/src/APIEndpoints.js](Client/src/APIEndpoints.js).
 
 ---
 
@@ -307,7 +314,7 @@ The API serves the built React app from `wwwroot/` (`UseStaticFiles` + `MapFallb
 
    More notes are in [SmartBillingServer/Readme.md](SmartBillingServer/Readme.md).
 
-Outside Development, the server opens `http://localhost:5000` on startup. Swagger is also enabled in Production.
+Outside Development, the standalone server opens the address it listens on in the browser at startup (for example `http://localhost:5000`). Swagger and the detailed error page are only enabled in Development; in Production an error returns a plain 500 response without internal details. The UI is served from the same address as the API, so cross-origin calls are refused unless their origins are listed in `Cors:Origins`.
 
 ---
 

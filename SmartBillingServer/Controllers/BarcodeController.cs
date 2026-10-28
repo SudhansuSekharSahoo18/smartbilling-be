@@ -38,9 +38,8 @@ namespace SmartBillingServer.Controllers
                     content += $"{barcode.ItemCode},{barcode.ItemName},{barcode.Price},{barcode.Quantity}\n";
                 }
 
-                // A path sent by the client (older config.json setups) wins; otherwise the one saved in Setting.
-                var filePath = SettingsController.ResolveBarcodeFilePath(
-                    string.IsNullOrWhiteSpace(barcodeDto.FilePath) ? _appConfigRepo.Get(x => x.Id == 1)?.BarcodeFilePath : barcodeDto.FilePath);
+                // Only the path saved on the Setting page (or the default) is used, never one sent by the browser.
+                var filePath = SettingsController.ResolveBarcodeFilePath(_appConfigRepo.Get(x => x.Id == 1)?.BarcodeFilePath);
                 var folder = Path.GetDirectoryName(filePath);
                 if (!string.IsNullOrEmpty(folder))
                 {
@@ -54,7 +53,8 @@ namespace SmartBillingServer.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                _logger.LogError(ex, "Could not write the barcode file");
+                return BadRequest($"Could not write the barcode file: {ex.Message}");
             }
         }
 
@@ -74,93 +74,5 @@ namespace SmartBillingServer.Controllers
 
             return NoContent();
         }
-
-
-
-
-
-        //[HttpGet("{id}")]
-        //public IActionResult GetById(int? id)
-        //{
-        //    //if (id == null || id == 0)
-        //    //{
-        //    //    return NotFound();
-        //    //}
-        //    //var category = _BarcodeRepo.Get(x => x.Id == id);
-        //    //if (category == null)
-        //    //{
-        //    //    return NotFound();
-        //    //}
-
-        //    //return Ok(category);
-        //}
-
-
-        //[HttpPost(Name = "Create")]
-        //public IActionResult Create([FromBody] Barcode category)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        _BarcodeRepo.Add(category);
-        //    }
-        //    else
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
-        //}
-
-
-        //[HttpPost(Name = "Update")]
-        //public IActionResult Update([FromBody] Category category)
-        //{
-        //    if (ModelState.IsValid)
-        //    {
-        //        _categoryRepo.Update(category);
-        //    }
-        //    else
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
-        //}
-
-
-        //[HttpPost(Name = "Delete")]
-        //public IActionResult Delete(int? id)
-        //{
-        //    if (id == null || id == 0)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var category = _categoryRepo.Get(x => x.Id == id);
-        //    if (category == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    _categoryRepo.Remove(category);
-
-        //    return Ok(category);
-        //}
-
-
-
-        //[HttpPost(Name = "Edit")]
-        //public IActionResult Edit(int? id)
-        //{
-        //    if (id == null || id == 0)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var objCategory = _db.Categories.FirstOrDefault(x => x.Id == id); 
-        //    if (objCategory == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(objCategory);
-        //}
     }
 }

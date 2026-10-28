@@ -31,6 +31,20 @@ export const SaveLabelDesign = 'labelDesign/save';
 export const GetSettings = 'settings';
 export const SaveSettings = 'settings/save';
 
+// Sign-in
+export const AuthStatus = 'auth/status';
+export const AuthLogin = 'auth/login';
+export const AuthSetup = 'auth/setup';
+export const AuthLogout = 'auth/logout';
+export const AuthChangePassword = 'auth/changePassword';
+
+// Staff accounts (admins only)
+export const GetEmployees = 'employee';
+export const CreateEmployee = 'employee/create';
+export const UpdateEmployee = 'employee/update';
+export const ResetEmployeePassword = 'employee/resetPassword';
+export const DeleteEmployee = 'employee/delete/';
+
 // Health
 export const HealthApi = 'health';
 export const HealthDb = 'health/db';

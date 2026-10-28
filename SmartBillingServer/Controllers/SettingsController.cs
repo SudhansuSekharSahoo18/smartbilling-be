@@ -23,8 +23,11 @@ namespace SmartBillingServer.Controllers
         public static string DefaultBarcodeFilePath =>
             Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "SmartBilling", "Barcode.csv");
 
+        // Paths saved before the .csv rule (see Save) fall back to the default too.
         public static string ResolveBarcodeFilePath(string? path) =>
-            string.IsNullOrWhiteSpace(path) ? DefaultBarcodeFilePath : path.Trim();
+            string.IsNullOrWhiteSpace(path) || !string.Equals(Path.GetExtension(path.Trim()), ".csv", StringComparison.OrdinalIgnoreCase)
+                ? DefaultBarcodeFilePath
+                : path.Trim();
 
         [HttpGet]
         public IActionResult Get()
@@ -50,9 +53,11 @@ namespace SmartBillingServer.Controllers
             }
 
             var barcodeFilePath = settings.BarcodeFilePath?.Trim() ?? "";
-            if (barcodeFilePath != "" && (!Path.IsPathFullyQualified(barcodeFilePath) || Path.GetFileName(barcodeFilePath) == ""))
+            // Only .csv files, so this setting can't be used to overwrite programs or other files.
+            if (barcodeFilePath != "" && (!Path.IsPathFullyQualified(barcodeFilePath)
+                || !string.Equals(Path.GetExtension(barcodeFilePath), ".csv", StringComparison.OrdinalIgnoreCase)))
             {
-                return BadRequest("Barcode export file must be a full file path, for example C:\\SmartBilling\\Barcode.csv.");
+                return BadRequest("Barcode export file must be a full path to a .csv file, for example C:\\SmartBilling\\Barcode.csv.");
             }
 
             var config = _appConfigRepo.Get(x => x.Id == 1);

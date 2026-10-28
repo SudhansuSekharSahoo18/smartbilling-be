@@ -74,7 +74,7 @@ const ShopSettingsForm = ({ notify, onSaved, submitLabel = 'Save settings' }) =>
         <label htmlFor="ss-barcodeFilePath">Barcode export file</label>
         <input id="ss-barcodeFilePath" type="text" value={form.barcodeFilePath} onChange={onChange('barcodeFilePath')}
           maxLength={500} placeholder={defaultBarcodeFilePath} />
-        <p className="ss-hint">Leave blank to use {defaultBarcodeFilePath || 'the default'}. The folder is created if it doesn't exist.</p>
+        <p className="ss-hint">A full path to a .csv file. Leave blank to use {defaultBarcodeFilePath || 'the default'}. The folder is created if it doesn't exist.</p>
       </div>
 
       <div className="ss-actions">

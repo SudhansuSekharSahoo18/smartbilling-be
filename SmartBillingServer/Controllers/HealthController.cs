@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Models.Models;
@@ -16,6 +17,8 @@ namespace SmartBillingServer.Controllers
             _db = db;
         }
 
+        // Public, so the desktop app can check that the server is up before anyone signs in.
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult Get()
         {

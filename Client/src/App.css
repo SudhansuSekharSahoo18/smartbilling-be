@@ -292,6 +292,8 @@
 .app input[type='text'],
 .app input[type='number'],
 .app input[type='month'],
+.app input[type='password'],
+.app input[type='tel'],
 .app input:not([type]),
 .app select {
   height: var(--sb-control-height);
@@ -388,4 +390,31 @@
 /* First-run setup has no sidebar. */
 .app.app--setup {
   display: block;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--sb-sidebar-text);
+}
+
+.sidebar-user span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app .sidebar-signout {
+  padding: 4px 10px;
+  font-size: 12px;
+  background: transparent;
+  border: 1px solid #334155;
+  color: var(--sb-sidebar-text);
+}
+
+.app .sidebar-signout:hover {
+  background: var(--sb-sidebar-hover);
 }

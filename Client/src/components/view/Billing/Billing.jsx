@@ -59,6 +59,7 @@ const Billing = ({ notify }) => {
     setBillItems([billItem])
     setCustomerName('')
     setCustomerMobileNumber('')
+    setBillDiscount('')
   }
 
   const addBlankRow = () => {
@@ -106,9 +107,11 @@ const Billing = ({ notify }) => {
     }
   };
 
-  const handleCtrlP = () => {
-    // handlePrint();
-    // createBill(billItems, 0, 'cash', customerName, '', true)
+  // Ctrl+P does the same as "Create bill and print". The key handler is registered once,
+  // so it calls the latest version of this through a ref.
+  const createAndPrintRef = useRef(null);
+  createAndPrintRef.current = () => {
+    if (!isSaving) createBill(billItems, billDiscount, modeOfPayment, customerName, customerMobileNumber, '');
   };
 
   const handlePrint = () => {
@@ -128,13 +131,13 @@ const Billing = ({ notify }) => {
     const billAmount = calculateNetAmount(billItems)
     const numberValue = Number(billDiscount) || 0;
     setAmountRecieved(round2(billAmount - numberValue));
-  }, [billDiscount]);
+  }, [billItems, billDiscount]);
 
   useEffect(() => {
     const handleKeyDown = (event) => {
-      if (event.ctrlKey && event.key === 'p') {
+      if (event.ctrlKey && event.key.toLowerCase() === 'p') {
         event.preventDefault();
-        handleCtrlP();
+        if (!event.repeat) createAndPrintRef.current();
       }
     };
 
@@ -274,7 +277,8 @@ const Billing = ({ notify }) => {
           </div>
           <button className='btn-lg btn-block'
             disabled={isSaving}
-            onClick={() => createBill(billItems, billDiscount, modeOfPayment, customerName, customerMobileNumber, '')}>
+            title='Ctrl+P'
+            onClick={() => createAndPrintRef.current()}>
             Create bill and print
           </button>
         </aside>

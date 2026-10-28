@@ -4,6 +4,7 @@ import { HealthApi, HealthDb, HealthConfig } from '../../../APIEndpoints.js';
 import { getBackendUrl } from '../../../Helper/apiHelper.js';
 import { isDesktop, sendToDesktop } from '../../../Helper/desktopBridge.js';
 import ShopSettingsForm from './ShopSettingsForm.jsx';
+import ChangePasswordForm from './ChangePasswordForm.jsx';
 
 const STATUS = { IDLE: 'idle', LOADING: 'loading', OK: 'ok', ERROR: 'error' };
 
@@ -72,6 +73,12 @@ const Setting = ({ notify, onSettingsSaved }) => {
         <h2 className="card-title">Shop details</h2>
         <p className="card-subtitle">Printed on bills and barcode labels.</p>
         <ShopSettingsForm notify={notify} onSaved={onSettingsSaved} />
+      </div>
+
+      <div className="card">
+        <h2 className="card-title">Password</h2>
+        <p className="card-subtitle">The password you sign in with.</p>
+        <ChangePasswordForm notify={notify} />
       </div>
 
       {isDesktop() && (

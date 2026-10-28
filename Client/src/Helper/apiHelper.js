@@ -30,7 +30,6 @@ export const getConfig = () => {
         shopName: settings.shopName || fileConfig.shopName || '',
         shopAddress: settings.shopAddress || fileConfig.shopAddress || '',
         shopGSTNumber: settings.shopGSTNumber || fileConfig.shopGSTNumber || '',
-        BarcodeGenerateFilePath: settings.barcodeFilePath || fileConfig.BarcodeGenerateFilePath || '',
         isSetupComplete: settings.isSetupComplete || !!fileConfig.shopName,
       })));
     configPromise.catch(() => { configPromise = null; });

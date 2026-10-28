@@ -1,0 +1,58 @@
+.staff-tableWrap {
+    overflow-x: auto;
+}
+
+.staff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.staff-table th,
+.staff-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--sb-border);
+    white-space: nowrap;
+}
+
+.staff-table th {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--sb-text-muted);
+}
+
+.staff-table tr.is-selected td {
+    background-color: var(--sb-primary-soft);
+}
+
+.staff-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.staff-role {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: #f1f5f9;
+    color: var(--sb-text-muted);
+}
+
+.staff-role--admin {
+    background-color: var(--sb-primary-soft);
+    color: var(--sb-primary);
+}
+
+.app .staff-admin {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}

@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
 using SmartBillingServer;
 using System.Diagnostics;
 
@@ -9,15 +11,11 @@ internal class Program
         {
             var app = ServerHost.Build(new ServerHostOptions { Args = args });
 
-            var uri = app.Environment.IsDevelopment() ? "https://localhost:7271" : "http://localhost:5000";
-
-            app.Lifetime.ApplicationStarted.Register(() =>
+            // In development the launch profile opens the React dev server instead.
+            if (!app.Environment.IsDevelopment())
             {
-                Process.Start(new ProcessStartInfo("cmd", $"/c start {uri}")
-                {
-                    CreateNoWindow = true
-                });
-            });
+                app.Lifetime.ApplicationStarted.Register(() => OpenBrowser(app));
+            }
 
             app.Run();
         }
@@ -35,5 +33,26 @@ internal class Program
             throw;
         }
 
+    }
+
+    // Opens the address the server actually listens on (any port, http or https).
+    private static void OpenBrowser(WebApplication app)
+    {
+        var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()?.Addresses
+            .OrderBy(x => x.StartsWith("https", StringComparison.OrdinalIgnoreCase) ? 0 : 1)
+            .FirstOrDefault();
+        if (address == null)
+        {
+            return;
+        }
+
+        // A server listening on all addresses (http://0.0.0.0:5000, http://[::]:5000, http://+:5000) is opened on this PC.
+        var uri = new UriBuilder(address.Replace("://+", "://localhost").Replace("://*", "://localhost"));
+        if (uri.Host is "0.0.0.0" or "[::]" or "::")
+        {
+            uri.Host = "localhost";
+        }
+
+        Process.Start(new ProcessStartInfo(uri.Uri.ToString()) { UseShellExecute = true });
     }
 }

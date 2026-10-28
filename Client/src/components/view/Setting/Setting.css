@@ -140,3 +140,22 @@
     margin-bottom: 24px;
     line-height: 1.5;
 }
+
+/* Sign-in screen and change password */
+.app .login-card {
+    max-width: 420px;
+}
+
+.login-form .ss-actions button {
+    width: 100%;
+}
+
+.login-error {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: var(--sb-danger);
+    background-color: var(--sb-danger-soft);
+}

@@ -14,7 +14,7 @@ import { formatRupees } from '../../../Helper/format.js';
 import './BarcodeView.css';
 
 
-const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
+const BarcodeView = ({ notify, ipAddress }) => {
   const gridRef = useRef(null);
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -23,14 +23,9 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
   const [shopName, setShopName] = useState('')
   const [labelDesign, setLabelDesign] = useState(DEFAULT_DESIGN)
   const [ip, setIp] = useState(null)
-  const [barcodeFilePath, setBarcodeFilePath] = useState(null)
   const [selectedId, setSelectedId] = useState(0)
 
-  const [rowData, setRowData] = useState([
-    { itemCode: "101", itemName: "Jeans", price: 1299, quantity: 10 },
-    { itemCode: "102", itemName: "Shirt", price: 800, quantity: 10 },
-    // { barcode: "103", itemName: "Jacket", price: 3000, quantity: 10 },
-  ]);
+  const [rowData, setRowData] = useState([]);
 
   const [colDefs, setColDefs] = useState([
     { field: "itemCode", headerName: "Item code", flex: 1, editable: true, filter: true },
@@ -89,7 +84,7 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ 'filePath': barcodeFilePath, 'barcodeList': rowData })
+        body: JSON.stringify({ 'barcodeList': rowData })
       });
 
       if (!response.ok) {
@@ -155,7 +150,6 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
     Promise.all([getBackendUrl(), getConfig()])
       .then(([url, data]) => {
         setIp(url);
-        setBarcodeFilePath(data.BarcodeGenerateFilePath);
         setShopName(data.shopName ?? '');
         loadLabelDesign(url)
           .then(setLabelDesign)
@@ -170,11 +164,9 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
           .then(data => {
             setRowData(data);
           })
-          .catch(error => {
-            throw error;
-          });
+          .catch(error => notify('error', `Could not load the label list: ${error.message}`));
       })
-      .catch(error => console.error('Error fetching config:', error));
+      .catch(error => notify('error', `Could not reach the server: ${error.message}`));
   }, []);
 
   return (
