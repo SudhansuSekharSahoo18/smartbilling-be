@@ -5,13 +5,12 @@ import BillingTable from '../../TableContainer/BillingTable.jsx';
 import Report from '../../Report/Report';
 import CustomInput from '../../CustomInput/CustomInput';
 import Dropdown from '../../Dropdown/Dropdown';
-import { formatDate } from '../../../Helper/dateHelper.js'
 import { CreateBill, GetAllItems } from '../../../APIEndpoints.js'
-import { getBackendUrl, getConfig } from '../../../Helper/apiHelper.js';
-import { calculateNetAmount } from './BillingManager.js'
+import { getBackendUrl, getConfig, readError } from '../../../Helper/apiHelper.js';
+import { calculateNetAmount, lineAmount, round2 } from './BillingManager.js'
 import { formatRupees } from '../../../Helper/format.js';
 
-const Billing = () => {
+const Billing = ({ notify }) => {
   const [ipAddress, setIpAddress] = useState(null);
   // const ipAddress = process.env.REACT_APP_backendUrl+"api/"
   const componentRef = useRef(null);
@@ -23,11 +22,12 @@ const Billing = () => {
     'itemId': 0, "barcode": '', "itemName": '',
     "mrp": null, "quantity": 1, "discountPercentage": 0
   }]);
-  const [billNumber, setBillNumber] = useState();
+  // The last bill saved by the server; it is what gets printed.
+  const [printBill, setPrintBill] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [customerName, setCustomerName] = useState('');
   const [customerMobileNumber, setCustomerMobileNumber] = useState('');
   const [modeOfPayment, setModeOfPayment] = useState('cash');
-  const [dateTime, setDateTime] = useState('');
   const [billDiscount, setBillDiscount] = useState();
   const [amountRecieved, setAmountRecieved] = useState();
   const [shopName, setShopName] = useState('Shop Name Not Found');
@@ -58,6 +58,7 @@ const Billing = () => {
     }
     setBillItems([billItem])
     setCustomerName('')
+    setCustomerMobileNumber('')
   }
 
   const addBlankRow = () => {
@@ -117,15 +118,16 @@ const Billing = () => {
   };
 
   useEffect(() => {
-    if (shallPrintBill.current) {
+    if (shallPrintBill.current && printBill) {
+      shallPrintBill.current = false;
       handlePrint();
     }
-  }, [billNumber]);
+  }, [printBill]);
 
   useEffect(() => {
     const billAmount = calculateNetAmount(billItems)
-    const numberValue = isNaN(billDiscount) ? 0 : Number(billDiscount);
-    setAmountRecieved(billAmount - numberValue);
+    const numberValue = Number(billDiscount) || 0;
+    setAmountRecieved(round2(billAmount - numberValue));
   }, [billDiscount]);
 
   useEffect(() => {
@@ -162,22 +164,16 @@ const Billing = () => {
             // console.log(process.env.REACT_APP_backendUrl)
           })
           .catch(error => {
-            // alert(error);
-            const defaultItems = [
-              { id: 1, barcode: "101", itemName: 'Saree', mrp: 500 },
-              { id: 2, barcode: "102", itemName: 'Jeans', mrp: 1500 },
-              { id: 3, barcode: "103", itemName: 'Shirt', mrp: 400 },
-              { id: 4, barcode: "104", itemName: 'Socks', mrp: 150 },
-              { id: 5, barcode: "105", itemName: 'Lungi', mrp: 80 },
-            ];
-            setProducts(defaultItems)
-            // setLoading(false);
+            // Don't bill from made-up items: show the problem instead.
+            setProducts([]);
+            notify('error', `Could not load items from the server: ${error.message}`);
           });
       })
-      .catch(error => console.error('Error fetching config:', error));
+      .catch(error => notify('error', `Could not reach the server: ${error.message}`));
   }, []);
 
   const handleSubmit = async (bill) => {
+    setIsSaving(true);
     try {
       const response = await fetch(ipAddress + CreateBill, {
         method: 'POST',
@@ -186,55 +182,62 @@ const Billing = () => {
         },
         body: JSON.stringify(bill)
       });
+      if (!response.ok) {
+        notify('error', await readError(response));
+        return;
+      }
       const data = await response.json();
-      setCustomerName(data.customerName);
-      setDateTime(formatDate(data.createdDateTime));
+      notify('success', `Bill ${data.id} saved`);
       shallPrintBill.current = true;
-      setBillNumber(data.id);
+      setPrintBill(data);
+      // Start the next bill, so pressing the button again can't save this one twice.
+      onClearButtonClick();
     } catch (error) {
-      alert(error)
+      notify('error', `Could not save the bill: ${error.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const createBill = (billItemList, discountPercentage, modeOfPayment, customerName, customerMobileNumber, customerAddress, isPrintBillEnable) => {
-    try {
-      const billItemDto = [];
-      const list = billItemList.filter((element, i) => (element.mrp !== null));
-      list.forEach(ele => {
-        billItemDto.push({
-          "itemId": ele.itemId,
-          "billId": 0,
-          "barcode": ele.barcode,
-          "itemName": ele.itemName,
-          "quantity": ele.quantity,
-          "mrp": ele.mrp,
-          "discountPercentage": ele.discountPercentage,
-          "amount": (100 - ele.discountPercentage) * 0.01 * ele.mrp * ele.quantity,
-        });
-      });
-
-      let gst = 0;
-      let subTotal = 0;
-      let totalAmount = 0;
-      billItemDto.forEach(x => subTotal += x.amount);
-      totalAmount = subTotal - discountPercentage + gst;
-      const bill = {
-        "id": 0,
-        "subTotal": subTotal,
-        "discountPercentage": discountPercentage,
-        "totalAmount": totalAmount,
-        "modeOfPayment": modeOfPayment,
-        "customerName": customerName,
-        "customerMobileNumber": customerMobileNumber,
-        "customerAddress": customerAddress,
-        "billItems": billItemDto,
-      }
-
-      // POST request
-      handleSubmit(bill)
-    } catch (e) {
-      // console.log(e)
+  const createBill = (billItemList, billDiscount, modeOfPayment, customerName, customerMobileNumber, customerAddress) => {
+    // Skip the blank rows left for typing in an item.
+    const list = billItemList.filter(ele => (ele.itemName ?? '').trim() !== '' || Number(ele.mrp) > 0);
+    if (list.length === 0) {
+      notify('warning', 'Add at least one item to the bill');
+      return;
     }
+    const invalid = list.find(ele => !(Number(ele.quantity) > 0) || !(Number(ele.mrp) >= 0) || (ele.itemName ?? '').trim() === '');
+    if (invalid) {
+      notify('warning', `Check "${invalid.itemName || 'the item without a name'}": it needs a name, a price and a quantity of at least 1`);
+      return;
+    }
+
+    // The server works out all amounts again; these are sent for reference only.
+    const billItemDto = list.map(ele => ({
+      "itemId": ele.itemId,
+      "billId": 0,
+      "barcode": ele.barcode,
+      "itemName": ele.itemName,
+      "quantity": Number(ele.quantity),
+      "mrp": Number(ele.mrp),
+      "discountPercentage": Number(ele.discountPercentage) || 0,
+      "amount": lineAmount(ele),
+    }));
+    const subTotal = calculateNetAmount(list);
+    const discountAmount = Number(billDiscount) || 0;
+    const bill = {
+      "id": 0,
+      "subTotal": subTotal,
+      "discountAmount": discountAmount,
+      "totalAmount": round2(subTotal - discountAmount),
+      "modeOfPayment": modeOfPayment,
+      "customerName": customerName,
+      "customerMobileNumber": customerMobileNumber,
+      "customerAddress": customerAddress,
+      "billItems": billItemDto,
+    }
+
+    handleSubmit(bill)
   }
 
   return (
@@ -270,7 +273,8 @@ const Billing = () => {
             <strong>{formatRupees(amountRecieved) || '₹0'}</strong>
           </div>
           <button className='btn-lg btn-block'
-            onClick={() => createBill(billItems, billDiscount, modeOfPayment, customerName, customerMobileNumber, '', true)}>
+            disabled={isSaving}
+            onClick={() => createBill(billItems, billDiscount, modeOfPayment, customerName, customerMobileNumber, '')}>
             Create bill and print
           </button>
         </aside>
@@ -279,7 +283,7 @@ const Billing = () => {
       {/* print */}
       <div className='print-area'>
         <div ref={componentRef}>
-          <Report billNumber={billNumber} customerName={customerName} dateTime={dateTime} billItems={billItems}
+          <Report bill={printBill}
             shopName={shopName} shopAddress={shopAddress} shopGSTNumber={shopGstNumber} />
         </div>
       </div>

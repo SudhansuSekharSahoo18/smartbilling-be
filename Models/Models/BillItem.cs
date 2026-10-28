@@ -10,8 +10,12 @@ namespace SmartBillingServer.Models
         public int Id { get; set; }
         public int ItemId { get; set; }
         public int BillId { get; set; }
-        //public string? Barcode { get; set; }
+        public string? Barcode { get; set; }
         public string? ItemName { get; set; }
+        // Copied from the item when the bill is created, so tax reports don't change when the item is
+        // edited or deleted later. Null on bills created before these were stored.
+        public string? HSNCode { get; set; }
+        public double? Tax { get; set; }
         //[Required]
         public string? Unit { get; set; }
         [Required]

@@ -136,7 +136,7 @@ namespace DataAccess.Migrations
                         {
                             Id = 1,
                             CreatedById = 1,
-                            CreatedDateTime = new DateTime(2026, 10, 28, 17, 21, 30, 961, DateTimeKind.Local).AddTicks(9945),
+                            CreatedDateTime = new DateTime(2026, 10, 28, 18, 46, 58, 904, DateTimeKind.Local).AddTicks(5391),
                             IsAdmin = true,
                             Name = "System",
                             Password = "12345",
@@ -309,11 +309,17 @@ namespace DataAccess.Migrations
                     b.Property<double>("Amount")
                         .HasColumnType("REAL");
 
+                    b.Property<string>("Barcode")
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("BillId")
                         .HasColumnType("INTEGER");
 
                     b.Property<double>("DiscountPercentage")
                         .HasColumnType("REAL");
+
+                    b.Property<string>("HSNCode")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("ItemId")
                         .HasColumnType("INTEGER");
@@ -326,6 +332,9 @@ namespace DataAccess.Migrations
 
                     b.Property<int>("Quantity")
                         .HasColumnType("INTEGER");
+
+                    b.Property<double?>("Tax")
+                        .HasColumnType("REAL");
 
                     b.Property<string>("Unit")
                         .HasColumnType("TEXT");

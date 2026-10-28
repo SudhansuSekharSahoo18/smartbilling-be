@@ -5,16 +5,18 @@ import "ag-grid-community/styles/ag-theme-quartz.css";
 import CustomInput from '../../CustomInput/CustomInput';
 import './Items.css';
 import Dropdown from '../../Dropdown/Dropdown';
-import { postRequest, getBackendUrl } from '../../../Helper/apiHelper.js';
+import { postRequest, getBackendUrl, readError } from '../../../Helper/apiHelper.js';
 import CustomCheckBox from '../../CustomCheckBox/CustomCheckBox.jsx';
 import { AddToBarcode, GetAllItems, CreateItem, UpdateItem, DeleteItem, Export, Import } from '../../../APIEndpoints.js'
 import FileUpload from '../../FileUpload/FileUpload.jsx';
 import { formatRupees } from '../../../Helper/format.js';
 
+// Number boxes hold '' while empty (see CustomInput).
+const isBlank = (value) => value === '' || value === undefined || value === null || Number.isNaN(value);
+const toNumber = (value) => isBlank(value) ? 0 : Number(value);
 
 const Items = (props) => {
   const gridRef = useRef(null);
-  const [ip, setIp] = useState('');
   const [barcode, setBarcode] = useState('');
   const [itemName, setItemName] = useState('');
   const [hsnCode, setHsnCode] = useState('');
@@ -29,10 +31,11 @@ const Items = (props) => {
   const [isEditMode, setIsEditMode] = useState(false);
 
   const [items, setItems] = useState([]);
+  // The unit is saved as its name, so value and label are the same.
   const unitOptions = [
-    { value: 1, label: 'Pieces' },
-    { value: 2, label: 'Boxes' },
-    { value: 3, label: 'Meters' },
+    { value: 'Pieces', label: 'Pieces' },
+    { value: 'Boxes', label: 'Boxes' },
+    { value: 'Meters', label: 'Meters' },
   ];
 
   const handleSelectedUnit = (option) => {
@@ -42,24 +45,7 @@ const Items = (props) => {
   const paginationPageSize = 10;
   const paginationPageSizeSelector = [10, 50, 100, 200];
 
-  // const EditButton = (props) => {
-  //   return <button onClick={() => window.alert('clicked')}>Edit</button>;
-  // };
-
-  // const DeleteButton = (props) => {
-  //   return <button className='deleteButton' onClick={() => {
-  //     console.log(props.id)
-  //     // const userConfirmed = window.confirm('Are you sure you want to delete this item?');
-  //     // if (userConfirmed) {
-  //     //   const newData = props.items.filter((item, i) => i !== index);
-  //     //   setItems(newData)
-  //     // }
-  //   }}>Delete</button>;
-  // };
-
   const [colDefs, setColDefs] = useState([
-    // { field: "button", flex: 1, cellRendererFramework: p => <DeleteButton id={p.id} />, },
-    // { field: "", flex: 1, cellRenderer: EditButton },
     { field: "id", headerName: "ID", flex: 0.6, filter: true },
     { field: "barcode", flex: 1, filter: true },
     { field: "itemName", headerName: "Item name", flex: 2, filter: true },
@@ -68,8 +54,7 @@ const Items = (props) => {
     { field: "unit", flex: 1 },
     { field: "mrp", headerName: "MRP", flex: 1, valueFormatter: p => formatRupees(p.value) },
     { field: "discountPercentage", headerName: "Discount %", flex: 1 },
-    { field: "tax", headerName: "Tax %", flex: 0.8, editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['5%', '12%', '18%'], } },
-    // { field: "isTaxInclusive", flex: 1 },
+    { field: "tax", headerName: "Tax %", flex: 0.8, valueFormatter: p => isBlank(p.value) ? '' : `${p.value}%` },
   ]);
 
   const ValidateItem = () => {
@@ -77,37 +62,37 @@ const Items = (props) => {
     let errorMessages = [];
 
     // validate ItemName
-    if (itemName === '' || itemName === undefined) {
-      const message = 'Please provide Item Name';
-      errorMessages.push(message);
+    if (itemName.trim() === '') {
+      errorMessages.push('Please provide Item Name');
       isValid = false;
     }
 
     // validate cost price
-    if (costPrice === 0 || costPrice === undefined) {
-      const message = 'Please provide Cost Price';
-      errorMessages.push(message);
+    if (isBlank(costPrice) || costPrice <= 0) {
+      errorMessages.push('Please provide Cost Price');
       isValid = false;
     }
 
     // validate MRP price
-    if (MRP === 0 || MRP === undefined) {
-      const message = 'Please provide MRP';
-      errorMessages.push(message);
+    if (isBlank(MRP) || MRP <= 0) {
+      errorMessages.push('Please provide MRP');
       isValid = false;
     }
 
     // validate HSN Code
-    if (hsnCode === '' || hsnCode === undefined) {
-      const message = 'Please provide HSN Code';
-      errorMessages.push(message);
+    if (hsnCode.trim() === '') {
+      errorMessages.push('Please provide HSN Code');
       isValid = false;
     }
 
-    // validate tax
-    if (tax === 0 || tax === undefined) {
-      const message = 'Please provide Tax';
-      errorMessages.push(message);
+    // validate tax (0% is a valid GST rate)
+    if (isBlank(tax) || tax < 0 || tax > 100) {
+      errorMessages.push('Please provide Tax % (0 to 100)');
+      isValid = false;
+    }
+
+    if (!isBlank(discountPercentage) && (discountPercentage < 0 || discountPercentage > 100)) {
+      errorMessages.push('Discount % must be between 0 and 100');
       isValid = false;
     }
 
@@ -122,24 +107,26 @@ const Items = (props) => {
     }
   }
 
+  const itemDto = () => ({
+    'barcode': barcode.trim(), 'itemName': itemName.trim(), 'hsnCode': hsnCode.trim(), 'quantity': toNumber(quantity), 'unit': selectedUnit,
+    'costPrice': toNumber(costPrice), 'mrp': toNumber(MRP), 'discountPercentage': toNumber(discountPercentage), 'tax': toNumber(tax),
+    'isTaxInclusive': isTaxInclusive,
+  });
+
   const OnAddItemClicked = async () => {
     if (ValidateItem() === false) {
       return;
     }
 
-    const itemDto = {
-      'barcode': barcode, 'itemName': itemName, 'hsnCode': hsnCode, 'quantity': quantity, 'unit': selectedUnit,
-      'costPrice': costPrice, 'mrp': MRP, 'discountPercentage': discountPercentage, 'tax': tax, 'isTaxInclusive': isTaxInclusive,
-    };
-    const response = await postRequest(props.ipAddress + CreateItem, itemDto)
+    const response = await postRequest(props.ipAddress + CreateItem, itemDto())
     if (response.ok) {
       const data = await response.json();
       setItems([...items, data])
       OnClearButtonClicked()
-      props.notify('success', 'Item added')
+      props.notify('success', `Item added with barcode ${data.barcode}`)
     }
     else
-      props.notify('error', response.status)
+      props.notify('error', await readError(response))
   }
 
   const OnClearButtonClicked = () => {
@@ -149,36 +136,29 @@ const Items = (props) => {
     setItemName('')
     setHsnCode('')
     setQuantity(1)
-    setCostPrice(0)
-    setMRP(0)
-    setDiscountPercentage(0)
-    setTax(0)
+    setSelectedUnit('Pieces')
+    setCostPrice('')
+    setMRP('')
+    setDiscountPercentage('')
+    setTax('')
     setIsTaxInclusive(true)
   }
 
 
   const OnEditButtonClicked = async () => {
     if (isEditMode) {
-      const itemDto = {
-        'id': selectedId, 'barcode': barcode, 'itemName': itemName, 'hsnCode': hsnCode, 'quantity': quantity, 'unit': selectedUnit,
-        'costPrice': costPrice, 'mrp': MRP, 'discountPercentage': discountPercentage, 'tax': tax,
-        'isTaxInclusive': isTaxInclusive,
-      };
-      const response = await postRequest(props.ipAddress + UpdateItem, itemDto)
+      if (ValidateItem() === false) {
+        return;
+      }
+      const response = await postRequest(props.ipAddress + UpdateItem, { 'id': selectedId, ...itemDto() })
       if (response.ok) {
-        const updatedData = items.map(row =>
-          row.id === selectedId ? {
-            ...row, barcode: barcode, itemName: itemName, hsnCode: hsnCode, quantity: quantity, costPrice: costPrice,
-            mrp: MRP, discountPercentage: discountPercentage, tax: tax, isTaxInclusive: isTaxInclusive
-          } : row
-        );
-        setItems(updatedData);
+        const saved = await response.json();
+        setItems(items.map(row => row.id === saved.id ? saved : row));
         OnClearButtonClicked()
-        setIsEditMode(!isEditMode)
         props.notify('success', 'Item Updated')
       }
       else
-        props.notify('error', response.status)
+        props.notify('error', await readError(response))
     }
   }
 
@@ -196,7 +176,7 @@ const Items = (props) => {
       props.notify('success', 'Item Deleted')
     }
     else
-      props.notify('error', response.status)
+      props.notify('error', await readError(response))
   }
 
   const OnAddToBarcodeButtonClicked = async () => {
@@ -207,32 +187,22 @@ const Items = (props) => {
 
     const response = await postRequest(props.ipAddress + AddToBarcode, { 'id': selectedId })
     if (response.ok) {
-      // const data = await response.json();
-      // setItems([...items, data])
-      // OnClearButtonClicked()
       props.notify('success', 'Item added to Barcode')
     }
     else
-      props.notify('error', response.status)
+      props.notify('error', await readError(response))
   }
 
   const OnExportButtonClicked = async () => {
-    const filename = 'items.xlsx'
     try {
-      const response = await fetch(props.ipAddress + Export, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      })
-
+      const response = await fetch(props.ipAddress + Export)
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error(await readError(response));
       }
+      // The server names the file (Items_<date>.xlsx).
+      const disposition = response.headers.get('content-disposition') ?? '';
+      const filename = /filename="?([^";]+)"?/.exec(disposition)?.[1] ?? 'Items.xlsx';
       const blob = await response.blob();
-      if (!blob || !(blob instanceof Blob)) {
-        throw new Error('The fetched data is not a valid Blob');
-      }
       const urlBlob = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = urlBlob;
@@ -242,38 +212,35 @@ const Items = (props) => {
       a.remove();
       window.URL.revokeObjectURL(urlBlob);
     } catch (error) {
-      console.error('Error downloading file:', error);
+      props.notify('error', `Export failed: ${error.message}`);
     }
   }
-  
-  const OnImportButtonClicked = async () => {
-    const filename = 'items.csv'
-    try {
-      const response = await fetch(props.ipAddress + Import, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-      })
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const blob = await response.blob();
-      if (!blob || !(blob instanceof Blob)) {
-        throw new Error('The fetched data is not a valid Blob');
-      }
-      const urlBlob = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = urlBlob;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(urlBlob);
-    } catch (error) {
-      console.error('Error downloading file:', error);
+  const loadItems = (url) =>
+    fetch(url + GetAllItems)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setItems(data);
+      })
+      .catch(error => {
+        setItems([]);
+        props.notify('error', `Could not load items from the server: ${error.message}`);
+      });
+
+  const onImported = (result) => {
+    const summary = `Import finished: ${result.added} added, ${result.updated} updated`;
+    if (result.errors.length > 0) {
+      props.notify('warning', `${summary}, ${result.errors.length} row(s) skipped`);
+      result.errors.slice(0, 5).forEach(error => props.notify('error', error));
+    } else {
+      props.notify('success', summary);
     }
+    loadItems(props.ipAddress);
   }
 
   const onSelectionChanged = () => {
@@ -286,55 +253,27 @@ const Items = (props) => {
   };
 
   const onRowDoubleClicked = (e) => {
-    setSelectedId(e.data['id']);
-    const item = items.filter((item) => item.id === selectedId)[0];
-    setBarcode(item.barcode)
-    setItemName(item.itemName)
-    setHsnCode(item.hsnCode)
+    // Use the row that was double-clicked; selectedId state may not be updated yet.
+    const item = e.data;
+    setSelectedId(item.id);
+    setBarcode(item.barcode ?? '')
+    setItemName(item.itemName ?? '')
+    setHsnCode(item.hsnCode ?? '')
     setQuantity(item.quantity)
+    setSelectedUnit(unitOptions.some(x => x.value === item.unit) ? item.unit : 'Pieces')
     setCostPrice(item.costPrice)
     setMRP(item.mrp)
     setDiscountPercentage(item.discountPercentage)
     setTax(item.tax)
     setIsTaxInclusive(item.isTaxInclusive)
 
-    setIsEditMode(!isEditMode)
+    setIsEditMode(true)
   };
 
   useEffect(() => {
-    // setItemName('test6');
-    // setQuantity(5);
-    // setCostPrice(100);
-    // setSellPrice(200);
-    // setTax(0);
-
     getBackendUrl()
-      .then(url => {
-        setIp(url.slice(0, -4));
-
-        fetch(url + GetAllItems)
-          .then(response => {
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-            return response.json();
-          })
-          .then(data => {
-            // data.length = 5
-            setItems(data);
-          })
-          .catch(error => {
-            const defaultItems = [
-              { id: 1, barcode: "101", itemName: 'Invalid', price: 500 },
-              { id: 2, barcode: "102", itemName: 'Invalid', price: 1500 },
-              { id: 3, barcode: "103", itemName: 'Invalid', price: 400 },
-              { id: 4, barcode: "104", itemName: 'Invalid', price: 150 },
-              { id: 5, barcode: "105", itemName: 'Invalid', price: 80 },
-            ];
-            setItems(defaultItems)
-          });
-      })
-      .catch(error => console.error('Error fetching config:', error));
+      .then(url => loadItems(url))
+      .catch(error => props.notify('error', `Could not reach the server: ${error.message}`));
   }, []);
 
   return (
@@ -349,7 +288,7 @@ const Items = (props) => {
           <CustomInput label={'Item name'} text={itemName} type={'text'} setText={setItemName} />
           <CustomInput label={'HSN code'} text={hsnCode} type={'text'} setText={setHsnCode} />
           <CustomInput label={'Quantity'} text={quantity} type={'number'} setText={setQuantity} />
-          <Dropdown label={'Unit'} options={unitOptions} onSelect={handleSelectedUnit} />
+          <Dropdown label={'Unit'} options={unitOptions} onSelect={handleSelectedUnit} value={selectedUnit} />
           <CustomInput label={'Cost price'} type={'number'} text={costPrice} setText={setCostPrice} />
           <CustomInput label={'MRP'} text={MRP} type={'number'} setText={setMRP} />
           <CustomInput label={'Discount %'} type={'number'} text={discountPercentage} setText={setDiscountPercentage} />
@@ -369,9 +308,10 @@ const Items = (props) => {
           <button className='btn-danger' onClick={OnDeleteButtonClicked}>Delete</button>
           <span className='toolbar-spacer' />
           <button className='btn-secondary' onClick={OnExportButtonClicked}>Export</button>
-          <button className='btn-secondary' onClick={OnImportButtonClicked}>Import</button>
           <span className='toolbar-divider' />
-          <FileUpload ipAddress={ip} />
+          <FileUpload url={props.ipAddress ? props.ipAddress + Import : null} accept='.xlsx' buttonText='Import'
+            title='Add or update items from an Excel file laid out like the Export file'
+            onUploaded={onImported} onError={(message) => props.notify('error', message)} />
         </div>
         <div className="ag-theme-quartz grid-card">
           <AgGridReact rowData={items} columnDefs={colDefs} embedFullWidthRows={true}
@@ -389,6 +329,3 @@ const Items = (props) => {
 };
 
 export default Items;
-
-
-

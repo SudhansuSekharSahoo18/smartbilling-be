@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './BillingTable.css';
-import { calculateTotalMrp, calculateNetAmount, calculateTotalDiscount } from '../view/Billing/BillingManager.js'
+import { calculateNetAmount, lineAmount } from '../view/Billing/BillingManager.js'
 import { formatRupees } from '../../Helper/format.js';
 
 const BillingTable = ({ addBlankRow, items, setBillItems, setBillDiscount, setAmountRecieved }) => {
@@ -148,7 +148,7 @@ const BillingTable = ({ addBlankRow, items, setBillItems, setBillDiscount, setAm
                       />
                     </td>
                     <td className='num amount'>
-                      {formatRupees((100 - item.discountPercentage) * 0.01 * item.mrp * item.quantity)}
+                      {formatRupees(lineAmount(item))}
                     </td>
                   </tr>
                 ))}

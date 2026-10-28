@@ -10,7 +10,7 @@ export const Import = 'item/Import';
 // Bill
 export const GetAllBill = 'bill/Get';
 export const CreateBill = 'bill/create';
-export const UpdateBill = 'bill/update';
+export const ReturnBillItem = 'bill/ReturnItem';
 export const DeleteBill = 'bill/delete/';
 export const GetTotalSaleByDate = 'bill/GetTotalSaleByDate';
 export const GetMonthlySales = 'bill/GetMonthlySales';

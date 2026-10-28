@@ -2,6 +2,8 @@ using System.Globalization;
 using ClosedXML.Excel;
 using DataAccess.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Models.Dtos;
+using Models.Models;
 using SmartBillingServer.Helper;
 using SmartBillingServer.Models;
 
@@ -52,12 +54,95 @@ namespace SmartBillingServer.Controllers
         {
             if (bill == null)
             {
-                return BadRequest();
+                return BadRequest("No bill was sent.");
             }
 
+            var error = ValidateBillItems(bill);
+            if (error != null)
+            {
+                return BadRequest(error);
+            }
+            if (bill.DiscountAmount < 0)
+            {
+                return BadRequest("The bill discount can't be negative.");
+            }
+
+            bill.Id = 0;
+            foreach (var billItem in bill.BillItems)
+            {
+                billItem.Id = 0;
+                billItem.BillId = 0;
+                // Lines typed in by hand have no item (ItemId 0), so there is no stock or tax rate to use.
+                var item = billItem.ItemId > 0 ? _itemRepo.Get(x => x.Id == billItem.ItemId) : null;
+                if (item == null)
+                {
+                    billItem.ItemId = 0;
+                    continue;
+                }
+                billItem.Barcode = item.Barcode;
+                billItem.HSNCode = item.HSNCode;
+                billItem.Tax = item.Tax;
+                billItem.Unit ??= item.Unit;
+                item.Quantity -= billItem.Quantity;
+            }
+
+            var requestedDiscount = bill.DiscountAmount;
+            bill.Recalculate();
+            if (requestedDiscount > bill.SubTotal)
+            {
+                return BadRequest($"The bill discount (₹{requestedDiscount}) is more than the bill amount (₹{bill.SubTotal}).");
+            }
             bill.CreatedDateTime = DateTime.Now;
+            // The items above were loaded through the same DbContext, so this one save also stores the
+            // lower stock: the bill and the stock change are saved together or not at all.
             _billRepo.Add(bill);
             return CreatedAtAction(nameof(GetById), new { id = bill.Id }, bill);
+        }
+
+        /// <summary>
+        /// Takes one unit of an item off a bill (a customer return): the bill's amounts are worked out again
+        /// and the unit goes back into stock.
+        /// </summary>
+        [HttpPost("ReturnItem")]
+        public IActionResult ReturnItem([FromBody] ReturnItemDto dto)
+        {
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Barcode))
+            {
+                return BadRequest("Scan or type the barcode of the item being returned.");
+            }
+            var bill = _billRepo.Get(x => x.Id == dto.BillId, includeProperties: "BillItems");
+            if (bill == null)
+            {
+                return NotFound($"Bill {dto.BillId} was not found.");
+            }
+
+            var barcode = dto.Barcode.Trim();
+            // Bills created before barcodes were stored on the line are matched through the item.
+            var item = _itemRepo.Get(x => x.Barcode == barcode);
+            var billItem = bill.BillItems.FirstOrDefault(x => x.Barcode == barcode)
+                ?? (item != null ? bill.BillItems.FirstOrDefault(x => x.Barcode == null && x.ItemId == item.Id) : null);
+            if (billItem == null)
+            {
+                return NotFound($"Barcode {barcode} is not on bill {bill.Id}.");
+            }
+
+            billItem.Quantity -= 1;
+            if (billItem.Quantity <= 0)
+            {
+                bill.BillItems.Remove(billItem);
+            }
+            if (billItem.ItemId > 0)
+            {
+                var stockItem = _itemRepo.Get(x => x.Id == billItem.ItemId);
+                if (stockItem != null)
+                {
+                    stockItem.Quantity += 1;
+                }
+            }
+            bill.Recalculate();
+            _billRepo.Save();
+
+            return Ok(bill);
         }
 
         [HttpDelete("Delete/{id}")]
@@ -76,6 +161,15 @@ namespace SmartBillingServer.Controllers
 
             try
             {
+                // The sold items go back into stock (saved together with the delete).
+                foreach (var billItem in bill.BillItems.Where(x => x.ItemId > 0))
+                {
+                    var item = _itemRepo.Get(x => x.Id == billItem.ItemId);
+                    if (item != null)
+                    {
+                        item.Quantity += billItem.Quantity;
+                    }
+                }
                 _billRepo.Remove(bill);
                 _logger.LogInformation($"Bill with ID {id} deleted successfully.");
                 return Ok(new { message = $"Bill with ID {id} deleted successfully." });
@@ -87,10 +181,54 @@ namespace SmartBillingServer.Controllers
             }
         }
 
+        private static string? ValidateBillItems(Bill bill)
+        {
+            if (bill.BillItems == null || bill.BillItems.Count == 0)
+            {
+                return "Add at least one item to the bill.";
+            }
+            foreach (var billItem in bill.BillItems)
+            {
+                var name = string.IsNullOrWhiteSpace(billItem.ItemName) ? "An item" : billItem.ItemName;
+                if (billItem.Quantity <= 0)
+                {
+                    return $"{name}: the quantity must be at least 1.";
+                }
+                if (billItem.MRP < 0 || double.IsNaN(billItem.MRP))
+                {
+                    return $"{name}: the price can't be negative.";
+                }
+                if (billItem.DiscountPercentage < 0 || billItem.DiscountPercentage > 100)
+                {
+                    return $"{name}: the discount must be between 0 and 100%.";
+                }
+            }
+            return null;
+        }
+
+        private static string? ValidateMonthYear(int? month, int? year)
+        {
+            if (month is < 1 or > 12)
+            {
+                return "Month must be between 1 and 12.";
+            }
+            if (year is < 2000 or > 2100)
+            {
+                return "Year must be between 2000 and 2100.";
+            }
+            return null;
+        }
+
+        private Dictionary<int, Item> ItemsById() => _itemRepo.GetAll().ToDictionary(i => i.Id);
+
         [HttpGet("GetTotalSaleByDate")]
         public ActionResult<double> GetTotalSaleByDate(string? date)
         {
-            DateTime localDate = date == null ? DateTime.Now : DateTime.Parse(date);
+            DateTime localDate = DateTime.Now;
+            if (date != null && !DateTime.TryParse(date, CultureInfo.InvariantCulture, out localDate))
+            {
+                return BadRequest($"\"{date}\" is not a valid date. Use yyyy-MM-dd.");
+            }
             var bills = _billRepo.GetRange(x => x.CreatedDateTime.Date == localDate.Date);
             double todalAmount = bills.Sum(x => x.TotalAmount);
 
@@ -98,51 +236,33 @@ namespace SmartBillingServer.Controllers
         }
 
         [HttpGet("GenerateSaleReport")]
-        public async Task<IActionResult> GetSaleReport(int month, int year)
+        public IActionResult GetSaleReport(int month, int year)
         {
+            var error = ValidateMonthYear(month, year);
+            if (error != null)
+            {
+                return BadRequest(error);
+            }
             var monthName = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(month);
 
-            IEnumerable<Bill> bills = _billRepo.GetRange(x => x.CreatedDateTime.Year == year && x.CreatedDateTime.Month > (month - 1) && x.CreatedDateTime.Month <= month,
-                includeProperties: "BillItems");
-            if (!bills.Any())
-            {
-                bills = [];
-            }
+            IEnumerable<Bill> bills = _billRepo.GetRange(x => x.CreatedDateTime.Year == year && x.CreatedDateTime.Month == month,
+                includeProperties: "BillItems").OrderBy(x => x.CreatedDateTime);
 
             var shopName = _appConfigRepo.Get(x => x.Id == 1)?.ShopName ?? "";
-            var content = bills.BillToSaleReport(monthName, year, shopName);
-            var fileName = "saleReport_" + monthName + "_" + year;
-            // The working directory may be read-only (e.g. when the desktop exe is started from Program Files).
-            var tempFolder = Path.Combine(Path.GetTempPath(), "SmartBilling");
-            Directory.CreateDirectory(tempFolder);
-            var filePath = Path.Combine(tempFolder, $"{fileName}.csv");
+            var content = bills.BillToSaleReport(monthName, year, shopName, ItemsById());
+            var fileName = $"saleReport_{monthName}_{year}.csv";
 
-            System.IO.File.WriteAllText(filePath, content);
-
-            if (string.IsNullOrEmpty(filePath))
-            {
-                return BadRequest("Filename is not provided.");
-            }
-
-            if (!System.IO.File.Exists(filePath))
-            {
-                return NotFound();
-            }
-
-            var memory = new MemoryStream();
-            using (var stream = new FileStream(filePath, FileMode.Open))
-            {
-                await stream.CopyToAsync(memory);
-            }
-            memory.Position = 0;
-
-            return File(memory, GetContentType(filePath), Path.GetFileName(filePath));
-            // Delete file after sending
+            return File(System.Text.Encoding.UTF8.GetBytes(content), GetContentType(fileName), fileName);
         }
 
         [HttpGet("GetTaxSummaryReport")]
         public IActionResult GetTaxSummaryReport(int? month, int? year)
         {
+            var error = ValidateMonthYear(month, year);
+            if (error != null)
+            {
+                return BadRequest(error);
+            }
             int targetMonth = month ?? DateTime.Now.Month;
             int targetYear = year ?? DateTime.Now.Year;
 
@@ -150,24 +270,34 @@ namespace SmartBillingServer.Controllers
                 x => x.CreatedDateTime.Year == targetYear && x.CreatedDateTime.Month == targetMonth,
                 includeProperties: "BillItems");
 
-            var itemDict = _itemRepo.GetAll().ToDictionary(i => i.Id);
+            // Lines use the HSN code and rate stored when they were sold; older bills fall back to the item.
+            var itemDict = ItemsById();
 
             var grouped = bills
-                .SelectMany(b => b.BillItems)
-                .Where(bi => itemDict.ContainsKey(bi.ItemId) && itemDict[bi.ItemId].Tax > 0)
-                .GroupBy(bi => new { itemDict[bi.ItemId].HSNCode, itemDict[bi.ItemId].Tax })
+                .SelectMany(b => b.BillItems.Select(bi => new
+                {
+                    HSNCode = bi.HSNCode(itemDict) ?? "",
+                    Tax = bi.TaxRate(itemDict),
+                    bi.Quantity,
+                    // After the bill discount, which lowers the value GST is charged on.
+                    Amount = b.NetAmount(bi),
+                }))
+                .Where(bi => bi.Tax > 0)
+                .GroupBy(bi => new { bi.HSNCode, bi.Tax })
                 .Select(g =>
                 {
-                    var assessableValue = Math.Round(g.Sum(bi => bi.Amount) / (1.0 + g.Key.Tax / 100.0), 2);
+                    var totalAmount = g.Sum(bi => bi.Amount);
+                    var assessableValue = Helper.Helper.Round2(Helper.Helper.TaxableValue(totalAmount, g.Key.Tax));
+                    var halfGst = Helper.Helper.HalfGst(totalAmount, g.Key.Tax);
                     return new
                     {
                         HSNCode = g.Key.HSNCode,
                         TaxRate = g.Key.Tax,
                         TotalQuantity = g.Sum(bi => bi.Quantity),
-                        TotalAmount = Math.Round(g.Sum(bi => bi.Amount), 2),
+                        TotalAmount = Helper.Helper.Round2(totalAmount),
                         AssessableValue = assessableValue,
-                        CGST = Math.Round(g.Key.Tax / 200.0 * assessableValue, 2),
-                        SGST = Math.Round(g.Key.Tax / 200.0 * assessableValue, 2),
+                        CGST = halfGst,
+                        SGST = halfGst,
                     };
                 })
                 .OrderBy(x => x.HSNCode)
@@ -214,6 +344,11 @@ namespace SmartBillingServer.Controllers
         [HttpGet("GetDailySales")]
         public ActionResult<IEnumerable<object>> GetDailySales(int? month, int? year)
         {
+            var error = ValidateMonthYear(month, year);
+            if (error != null)
+            {
+                return BadRequest(error);
+            }
             int targetMonth = month ?? DateTime.Now.Month;
             int targetYear = year ?? DateTime.Now.Year;
             int daysInMonth = DateTime.DaysInMonth(targetYear, targetMonth);
@@ -233,6 +368,11 @@ namespace SmartBillingServer.Controllers
         [HttpGet("GetMonthlySales")]
         public ActionResult<IEnumerable<object>> GetMonthlySales(int? year)
         {
+            var error = ValidateMonthYear(null, year);
+            if (error != null)
+            {
+                return BadRequest(error);
+            }
             // Financial year starts in April; default to current FY
             int fyStartYear = year ?? (DateTime.Now.Month >= 4 ? DateTime.Now.Year : DateTime.Now.Year - 1);
             int fyEndYear = fyStartYear + 1;

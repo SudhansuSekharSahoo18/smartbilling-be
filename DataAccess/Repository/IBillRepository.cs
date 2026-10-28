@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 
 namespace DataAccess.Repository
 {
-    public interface IBillRepository: IRepository<Bill> 
+    public interface IBillRepository: IRepository<Bill>
     {
-
+        // Saves changes made to entities already loaded through this repository (e.g. a bill's items).
+        void Save();
     }
 }

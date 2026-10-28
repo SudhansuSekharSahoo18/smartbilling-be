@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { Import } from '../../APIEndpoints.js'
+import React, { useRef, useState } from 'react';
+import { readError } from '../../Helper/apiHelper.js';
 import './FileUpload.css';
 
-const FileUpload = (props) => {
+// Posts the chosen file (form field "file") to `url`, then calls onUploaded with the JSON reply.
+const FileUpload = ({ url, accept, buttonText = 'Upload', title, onUploaded, onError }) => {
     const [file, setFile] = useState(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const inputRef = useRef(null);
 
     // Handles file selection
     const handleFileChange = (event) => {
-        setFile(event.target.files[0]);
+        setFile(event.target.files[0] ?? null);
     };
 
     // Handles file upload on form submission
     const handleSubmit = async (event) => {
-        
-        // return;
         event.preventDefault();
 
-        if (!file) {
-            alert('Please select a file to upload.');
+        if (!file || !url) {
             return;
         }
 
@@ -25,32 +25,37 @@ const FileUpload = (props) => {
         const formData = new FormData();
         formData.append('file', file);
 
+        setIsUploading(true);
         try {
-            // Send file using fetch
-            const response = await fetch(props.ipAddress + 'api/' + Import, {
+            const response = await fetch(url, {
                 method: 'POST',
                 body: formData,
             });
 
             if (response.ok) {
-                const result = await response.json();
-                console.log('File uploaded successfully:', result);
+                setFile(null);
+                if (inputRef.current) inputRef.current.value = '';
+                onUploaded?.(await response.json());
             } else {
-                console.error('File upload failed:', response.statusText);
+                onError?.(await readError(response));
             }
         } catch (error) {
-            console.error('Error uploading file:', error);
+            onError?.(`Upload failed: ${error.message}`);
+        } finally {
+            setIsUploading(false);
         }
     };
 
     return (
-        <form className='fileUpload' onSubmit={handleSubmit}>
+        <form className='fileUpload' onSubmit={handleSubmit} title={title}>
             <label className='fileUpload-choose'>
-                <input type="file" onChange={handleFileChange} />
+                <input ref={inputRef} type="file" accept={accept} onChange={handleFileChange} />
                 Choose file
             </label>
             <span className='fileUpload-name' title={file?.name}>{file ? file.name : 'No file chosen'}</span>
-            <button type="submit" className='btn-secondary' disabled={!file}>Upload</button>
+            <button type="submit" className='btn-secondary' disabled={!file || !url || isUploading}>
+                {isUploading ? 'Importing…' : buttonText}
+            </button>
         </form>
     );
 };

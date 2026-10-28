@@ -112,3 +112,18 @@ export const patchRequest = async (url, bodyData) => {
     throw error;
   }
 };
+
+// A readable message for a failed response: the server's text, the first validation error, or the status.
+export const readError = async (response) => {
+  const text = await response.text().catch(() => '');
+  try {
+    const problem = JSON.parse(text);
+    if (typeof problem === 'string') return problem;
+    const firstError = problem.errors && Object.values(problem.errors).flat()[0];
+    if (firstError) return firstError;
+    if (problem.title) return problem.title;
+  } catch {
+    // Not JSON: plain text from the server.
+  }
+  return text.trim() || `Request failed (${response.status})`;
+};
