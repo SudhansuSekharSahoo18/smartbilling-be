@@ -2,6 +2,8 @@ import React, { useState, useCallback } from 'react';
 import './Setting.css';
 import { HealthApi, HealthDb, HealthConfig } from '../../../APIEndpoints.js';
 import { getBackendUrl } from '../../../Helper/apiHelper.js';
+import { isDesktop, sendToDesktop } from '../../../Helper/desktopBridge.js';
+import ShopSettingsForm from './ShopSettingsForm.jsx';
 
 const STATUS = { IDLE: 'idle', LOADING: 'loading', OK: 'ok', ERROR: 'error' };
 
@@ -29,7 +31,7 @@ const HealthCard = ({ title, description, check }) => (
   </div>
 );
 
-const Setting = () => {
+const Setting = ({ notify }) => {
   const [api,    setApi]    = useState(initialCheck());
   const [db,     setDb]     = useState(initialCheck());
   const [config, setConfig] = useState(initialCheck());
@@ -55,9 +57,32 @@ const Setting = () => {
     runCheck(HealthConfig, setConfig);
   };
 
+  const onChooseLabelPrinterClicked = async () => {
+    try {
+      const result = await sendToDesktop({ type: 'chooseLabelPrinter' });
+      if (result.ok) notify('success', `Label printer: ${result.printer}`);
+    } catch (error) {
+      notify('error', error.message);
+    }
+  };
+
   return (
     <div className="hc-page">
       <div className="hc-header">
+        <h2 className="hc-title">Shop Details</h2>
+      </div>
+      <ShopSettingsForm notify={notify} />
+
+      {isDesktop() && (
+        <>
+          <div className="hc-header ss-section">
+            <h2 className="hc-title">Label Printer</h2>
+          </div>
+          <button className="hc-btn" onClick={onChooseLabelPrinterClicked}>Choose label printer…</button>
+        </>
+      )}
+
+      <div className="hc-header ss-section">
         <h2 className="hc-title">Health Check</h2>
         <button className="hc-btn" onClick={runAll}>Run Checks</button>
       </div>
@@ -75,7 +100,7 @@ const Setting = () => {
         />
         <HealthCard
           title="Configuration"
-          description="Checks that all required settings (connection string, file paths) are present in appsettings."
+          description="Checks that the shop details have been entered."
           check={config}
         />
       </div>

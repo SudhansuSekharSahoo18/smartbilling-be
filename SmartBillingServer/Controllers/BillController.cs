@@ -13,13 +13,15 @@ namespace SmartBillingServer.Controllers
     {
         private readonly IBillRepository _billRepo;
         private readonly IItemRepository _itemRepo;
+        private readonly IApplicationConfigurationRepository _appConfigRepo;
         private readonly ILogger<BillController> _logger;
 
-        public BillController(IBillRepository db, ILogger<BillController> logger, IItemRepository itemRepo)
+        public BillController(IBillRepository db, ILogger<BillController> logger, IItemRepository itemRepo, IApplicationConfigurationRepository appConfigRepo)
         {
             _billRepo = db;
             _logger = logger;
             _itemRepo = itemRepo;
+            _appConfigRepo = appConfigRepo;
         }
 
         [HttpGet("Get")]
@@ -107,10 +109,13 @@ namespace SmartBillingServer.Controllers
                 bills = [];
             }
 
-            var content = bills.BillToSaleReport(monthName, year);
+            var shopName = _appConfigRepo.Get(x => x.Id == 1)?.ShopName ?? "";
+            var content = bills.BillToSaleReport(monthName, year, shopName);
             var fileName = "saleReport_" + monthName + "_" + year;
-            Directory.CreateDirectory("temp");
-            var filePath = $"./temp/{fileName}.csv";
+            // The working directory may be read-only (e.g. when the desktop exe is started from Program Files).
+            var tempFolder = Path.Combine(Path.GetTempPath(), "SmartBilling");
+            Directory.CreateDirectory(tempFolder);
+            var filePath = Path.Combine(tempFolder, $"{fileName}.csv");
 
             System.IO.File.WriteAllText(filePath, content);
 

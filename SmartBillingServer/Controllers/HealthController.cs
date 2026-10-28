@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Models.Models;
 using SmartBillingServer.DataAccess.Data;
 
 namespace SmartBillingServer.Controllers
@@ -8,12 +10,10 @@ namespace SmartBillingServer.Controllers
     public class HealthController : ControllerBase
     {
         private readonly ApplicationDbContext _db;
-        private readonly IConfiguration _configuration;
 
-        public HealthController(ApplicationDbContext db, IConfiguration configuration)
+        public HealthController(ApplicationDbContext db)
         {
             _db = db;
-            _configuration = configuration;
         }
 
         [HttpGet]
@@ -44,18 +44,21 @@ namespace SmartBillingServer.Controllers
         {
             var issues = new List<string>();
 
-            var connectionString = _configuration.GetConnectionString("DefaultConnection");
-            if (string.IsNullOrWhiteSpace(connectionString))
-                issues.Add("ConnectionStrings.DefaultConnection is missing.");
-
-            var barcodeFilePath = _configuration["ConfigSettings:BarcodeGenerationFilePath"];
-            if (barcodeFilePath == null)
-                issues.Add("ConfigSettings.BarcodeGenerationFilePath is missing.");
+            try
+            {
+                var config = _db.Set<ApplicationConfiguration>().AsNoTracking().FirstOrDefault(x => x.Id == 1);
+                if (string.IsNullOrWhiteSpace(config?.ShopName))
+                    issues.Add("Shop name is not set. Enter the shop details on the Setting page.");
+            }
+            catch (Exception ex)
+            {
+                issues.Add($"Could not read the shop settings: {ex.Message}");
+            }
 
             if (issues.Count > 0)
                 return StatusCode(503, new { healthy = false, message = string.Join(" ", issues) });
 
-            return Ok(new { healthy = true, message = "All required configuration values are present." });
+            return Ok(new { healthy = true, message = $"Shop settings are set. Database: {_db.Database.GetDbConnection().DataSource}" });
         }
     }
 }

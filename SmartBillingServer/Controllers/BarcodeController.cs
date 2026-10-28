@@ -10,15 +10,13 @@ namespace SmartBillingServer.Controllers
     public class BarcodeController : ControllerBase
     {
         private readonly IBarcodeRepository _barcodeRepo;
+        private readonly IApplicationConfigurationRepository _appConfigRepo;
         private readonly ILogger<BarcodeController> _logger;
-        //private readonly IConfiguration _configuration;
-        private string fileName = "C:\\Sudhansu\\Barcode.csv";
-        public BarcodeController(IBarcodeRepository db, ILogger<BarcodeController> logger)
+        public BarcodeController(IBarcodeRepository db, IApplicationConfigurationRepository appConfigRepo, ILogger<BarcodeController> logger)
         {
             _barcodeRepo = db;
+            _appConfigRepo = appConfigRepo;
             _logger = logger;
-            //_configuration = configuration;
-            //fileName = _configuration["appsettings:ConfigSettings:BarcodeGenerationFilePath"];
         }
 
         [HttpGet(Name = "Barcode")]
@@ -40,10 +38,19 @@ namespace SmartBillingServer.Controllers
                     content += $"{barcode.ItemCode},{barcode.ItemName},{barcode.Price},{barcode.Quantity}\n";
                 }
 
-                System.IO.File.WriteAllText(barcodeDto.FilePath, content);
+                // A path sent by the client (older config.json setups) wins; otherwise the one saved in Setting.
+                var filePath = SettingsController.ResolveBarcodeFilePath(
+                    string.IsNullOrWhiteSpace(barcodeDto.FilePath) ? _appConfigRepo.Get(x => x.Id == 1)?.BarcodeFilePath : barcodeDto.FilePath);
+                var folder = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                System.IO.File.WriteAllText(filePath, content);
                 var barcodeList = barcodeDto.BarcodeList.Where(x => x.Id != 0);
                 _barcodeRepo.RemoveRange(barcodeList);
-                return Ok(barcodeDto.BarcodeList);
+                return Ok(new { filePath, barcodeList = barcodeDto.BarcodeList });
             }
             catch (Exception ex)
             {

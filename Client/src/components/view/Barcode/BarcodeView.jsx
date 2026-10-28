@@ -96,7 +96,7 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
 
       const responseData = await response.json();
       onClearItemButtonClicked();
-      notify('Barcode file created')
+      notify('success', `Barcode file created: ${responseData.filePath}`)
     } catch (error) {
       setError(error.message);
     }

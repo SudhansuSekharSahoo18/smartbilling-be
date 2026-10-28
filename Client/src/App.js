@@ -12,6 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ErrorView from './components/view/Error/ErrorView';
 import ErrorPageNotFoundView from './components/view/Error/ErrorPageNotFoundVew';
 import Setting from './components/view/Setting/Setting';
+import SetupView from './components/view/Setting/SetupView';
 import Dashboard from './components/view/Dashboard/Dashboard';
 import { getBackendUrl, getConfig } from './Helper/apiHelper.js';
 
@@ -19,6 +20,7 @@ const App = () => {
   const [ipAddress, setIpAddress] = useState(null);
   const [barcodeGenerateFilePath, setBarcodeGenerateFilePath] = useState(null);
   const [selectedTab, setSelectedTab] = useState('');
+  const [needsSetup, setNeedsSetup] = useState(false);
   const notify = (type, message) => {
     if(type == 'error')
       toast.error(message)
@@ -40,11 +42,24 @@ const App = () => {
       .then(([url, data]) => {
         setIpAddress(url);
         setBarcodeGenerateFilePath(data.BarcodeGenerateFilePath);
+        setNeedsSetup(!data.isSetupComplete);
       })
       .catch(error => {
         console.error('Error fetching config:', error)
       });
   }, []);
+
+  if (needsSetup) {
+    return (
+      <>
+        <ToastContainer />
+        <SetupView notify={notify} onComplete={(data) => {
+          setBarcodeGenerateFilePath(data.BarcodeGenerateFilePath);
+          setNeedsSetup(false);
+        }} />
+      </>
+    );
+  }
 
   return (
     <Router>

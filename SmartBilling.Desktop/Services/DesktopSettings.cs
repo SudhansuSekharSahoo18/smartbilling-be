@@ -1,11 +1,12 @@
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SmartBilling.Desktop.Services
 {
     /// <summary>
-    /// Desktop app settings. Defaults ship next to the exe; changes made in the app are
-    /// saved under %LOCALAPPDATA%\SmartBilling because the install folder may be read-only.
+    /// Desktop app settings, saved under %LOCALAPPDATA%\SmartBilling because the exe's folder may be
+    /// read-only. An optional desktopsettings.json next to the exe supplies defaults for a new user.
     /// </summary>
     public class DesktopSettings
     {
@@ -16,7 +17,11 @@ namespace SmartBilling.Desktop.Services
 
         private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
-        public string ServerUrl { get; set; } = "http://localhost:5000";
+        // Empty runs the built-in server (single PC). Set it to use a shared SmartBillingServer on the network.
+        public string ServerUrl { get; set; } = "";
+
+        [JsonIgnore]
+        public bool UsesBuiltInServer => string.IsNullOrWhiteSpace(ServerUrl);
         public string LabelPrinter { get; set; } = "";
 
         public static DesktopSettings Load()

@@ -26,6 +26,18 @@ namespace DataAccess.Migrations
                     b.Property<int>("Barcode")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("BarcodeFilePath")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ShopAddress")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ShopGSTNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ShopName")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Version")
                         .HasColumnType("TEXT");
 
@@ -124,7 +136,7 @@ namespace DataAccess.Migrations
                         {
                             Id = 1,
                             CreatedById = 1,
-                            CreatedDateTime = new DateTime(2026, 10, 27, 23, 55, 35, 362, DateTimeKind.Local).AddTicks(9278),
+                            CreatedDateTime = new DateTime(2026, 10, 28, 17, 21, 30, 961, DateTimeKind.Local).AddTicks(9945),
                             IsAdmin = true,
                             Name = "System",
                             Password = "12345",

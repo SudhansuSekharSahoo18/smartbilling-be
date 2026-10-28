@@ -27,6 +27,10 @@ export const DeleteBarcode = 'Barcode/Delete/';
 export const GetLabelDesign = 'labelDesign';
 export const SaveLabelDesign = 'labelDesign/save';
 
+// Shop settings
+export const GetSettings = 'settings';
+export const SaveSettings = 'settings/save';
+
 // Health
 export const HealthApi = 'health';
 export const HealthDb = 'health/db';

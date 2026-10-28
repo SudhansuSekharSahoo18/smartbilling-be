@@ -18,6 +18,34 @@ All .NET projects are in [SmartBillingServer.sln](SmartBillingServer.sln).
 
 ---
 
+## Single exe for one PC (quick start)
+
+For a shop with one billing PC, give the user one file, `SmartBilling.exe`. It contains the .NET runtime, the API, the SQLite engine and the web app, so nothing else has to be installed or configured. The only exception is the Microsoft Edge WebView2 Runtime, which is preinstalled on Windows 10/11.
+
+Build it (needs the .NET 8 SDK and Node.js on the build PC):
+
+```bash
+dotnet publish SmartBilling.Desktop -p:PublishProfile=SingleExe
+# -> SmartBilling.Desktop/bin/publish/SmartBilling.exe  (about 90 MB)
+```
+
+On the user's PC:
+
+1. Copy `SmartBilling.exe` anywhere, for example the Desktop, and run it.
+2. On first run, the app creates its database and asks for the shop details: name, address, GSTIN and the barcode export file. You can change them later on the **Setting** page.
+3. The first time you print labels, the app asks which printer is the label printer. You can change it later on **Setting** or the Barcode page.
+
+| What | Where |
+|---|---|
+| Database | `%LOCALAPPDATA%\SmartBilling\SmartBilling.db`. Back up this file. To move existing data in, copy a `SmartBilling.db` here while the app is closed. |
+| Desktop settings (label printer, optional server URL) | `%LOCALAPPDATA%\SmartBilling\desktopsettings.json` |
+| Error logs | `%LOCALAPPDATA%\SmartBilling\Logs` |
+| Barcode export (default) | `Documents\SmartBilling\Barcode.csv` |
+
+Only one copy of the app runs at a time. Starting it again brings the open window to the front. The built-in server listens on `127.0.0.1` only, on a free port, so other PCs can't reach it. For several PCs sharing one database, use the server deployment instead (section 6) and enter its address in the desktop app.
+
+---
+
 ## 1. Prerequisites
 
 - **Windows** — the server launch code uses `cmd` to open the browser, the SPA proxy uses `npm.cmd`, and the desktop project is WPF.
@@ -43,9 +71,11 @@ npm install
 
 > In Debug builds, building `SmartBillingServer` also runs `npm install` in `Client/` automatically, and fails if Node.js is missing.
 
-### 2.2 Create the client config file (required)
+### 2.2 Client config file (development only)
 
-The React app loads its settings at runtime from `Client/public/config.json`. **This file is git-ignored, so you must create it.** Without it the UI cannot reach the API.
+The React app reads the API address from `Client/public/config.json`, which is git-ignored. You need it for `npm start` (Option C), because the dev server on port 3000 isn't the API. When the API serves the UI (the desktop exe, or a production build in `wwwroot`), the file is optional: without it the UI calls the API on its own origin.
+
+Shop name, address and GSTIN are entered in the app (first-run setup / **Setting** page) and stored in the database. The `shopName`, `shopAddress`, `shopGSTNumber` and `BarcodeGenerateFilePath` keys below are only fallbacks for older setups, used until settings are saved in the app.
 
 `Client/public/config.json`:
 
@@ -64,8 +94,8 @@ The React app loads its settings at runtime from `Client/public/config.json`. **
 |---|---|
 | `backendUrl_DEV` | API base URL used when `REACT_APP_ENVIRONMENT` is not `PRODUCTION`. `/api/` is appended automatically. |
 | `backendUrl_PROD` | API base URL used when `REACT_APP_ENVIRONMENT=PRODUCTION`. |
-| `BarcodeGenerateFilePath` | Full path of the CSV file the API writes when you generate barcodes. **The folder must already exist** on the machine running the API. |
-| `shopName`, `shopAddress`, `shopGSTNumber` | Printed on bills. |
+| `BarcodeGenerateFilePath` | Fallback for the barcode export file (Setting page). The folder is created if it doesn't exist. |
+| `shopName`, `shopAddress`, `shopGSTNumber` | Fallbacks for the shop details (Setting page). |
 
 Which URL is used depends on `REACT_APP_ENVIRONMENT`, which [Client/.env](Client/.env) sets to `DEVELOPMENT`.
 
@@ -80,7 +110,7 @@ Which URL is used depends on `REACT_APP_ENVIRONMENT`, which [Client/.env](Client
 "ConfigSettings":   { "BarcodeGenerationFilePath": "" }
 ```
 
-`SmartBillingServer/appsettings.json` is **git-ignored**. Create it (you can copy `appsettings.Development.json`) for any non-Development run, such as a production or IIS deployment.
+`SmartBillingServer/appsettings.json` is **git-ignored** and optional. Without it, the database is `SmartBilling.db` in the content root. Create it (you can copy `appsettings.Development.json`) to use a different connection string in a production or IIS deployment. The desktop exe doesn't use these files.
 
 ### 2.4 Database (SQLite)
 
@@ -153,29 +183,29 @@ Then open http://localhost:3000. CORS on the API allows any origin, so the React
 
 ### Desktop app
 
-`SmartBilling.Desktop` shows the same web app in a Windows window, using WebView2. It does not contain its own copy of the UI or data. It connects to a running `SmartBillingServer`, so several PCs can share one server and database. Inside the desktop app, the Barcode page can print labels straight to a label printer, without a print dialog.
+`SmartBilling.Desktop` shows the web app in a Windows window, using WebView2. By default it runs `SmartBillingServer` inside its own process (the built-in server), with the React build embedded in the exe, so a single PC needs nothing else. See [Single exe for one PC](#single-exe-for-one-pc-quick-start). It can also connect to a shared `SmartBillingServer` so several PCs use one database. Inside the desktop app, the Barcode page can print labels straight to a label printer, without a print dialog.
 
 **Requirements:** Windows 10/11 with the Microsoft Edge WebView2 Runtime, which is preinstalled on most PCs. If it's missing, the app shows a download link.
 
-**Server address.** The app opens the URL in `ServerUrl`.
-- The default comes from [SmartBilling.Desktop/desktopsettings.json](SmartBilling.Desktop/desktopsettings.json) (`http://localhost:5000`).
-- If the server can't be reached, the app shows a screen where you can edit the URL and click **Save & Retry**.
-- Saved changes go to `%LOCALAPPDATA%\SmartBilling\desktopsettings.json`, which overrides the default.
+**Server address.** `ServerUrl` in `%LOCALAPPDATA%\SmartBilling\desktopsettings.json` picks the server.
+- Empty (the default): the built-in server. It is started on `127.0.0.1` with a free port, and the database is `%LOCALAPPDATA%\SmartBilling\SmartBilling.db`.
+- A URL: that server. If it can't be reached, the app shows a screen where you can edit the URL (or clear it to use the built-in server) and click **Save & Retry**.
 
 | Scenario | `ServerUrl` |
 |---|---|
+| One PC (single exe) | empty |
 | Development (API + `npm start` running, see Option C) | `http://localhost:3000` |
-| Server on the same PC (production build in `wwwroot`) | `http://localhost:5000` |
 | Server on another PC on the LAN | `http://<server-ip>:<port>`, for example `http://192.168.1.10:5000` |
 
-For the production and LAN cases, the server must serve the React build. See section 6. In `wwwroot/config.json`, set `backendUrl_PROD` to an address the desktop PCs can reach, not `localhost`.
+For the LAN case, the server must serve the React build. See section 6.
 
 ```bash
-# run from source
+# run from source. The built-in server needs Client/build: run "npm run build" in Client/ first,
+# or build in Release (-c Release), which builds the client for you.
 dotnet run --project SmartBilling.Desktop
 
-# build a distributable folder (copy it to each PC; run SmartBilling.Desktop.exe)
-dotnet publish SmartBilling.Desktop -c Release -o ./publish-desktop
+# the single exe (see "Single exe for one PC")
+dotnet publish SmartBilling.Desktop -p:PublishProfile=SingleExe
 ```
 
 **Barcode label printing** (Barcode page):
@@ -234,7 +264,9 @@ npm test
 |---|---|
 | `GET /api/health` | The API is running |
 | `GET /api/health/db` | The SQLite database can be opened |
-| `GET /api/health/config` | `ConnectionStrings:DefaultConnection` and `ConfigSettings:BarcodeGenerationFilePath` are present |
+| `GET /api/health/config` | The shop details have been entered; also shows the database file in use |
+
+Shop settings: `GET /api/settings`, `POST /api/settings/save`.
 
 All other endpoints are listed in Swagger at `/swagger`. The client-side routes are in [Client/src/APIEndpoints.js](Client/src/APIEndpoints.js).
 
@@ -253,9 +285,9 @@ The API serves the built React app from `wwwroot/` (`UseStaticFiles` + `MapFallb
 
    You can instead create `Client/.env.production.local` containing `REACT_APP_ENVIRONMENT=PRODUCTION`. That file overrides `.env` during `npm run build`.
 
-2. **Copy the build into the API.** Copy the contents of `Client/build/` into `SmartBillingServer/wwwroot/`. Make sure `wwwroot/config.json` exists, with `backendUrl_PROD` pointing at the deployed API URL.
+2. **Copy the build into the API.** Copy the contents of `Client/build/` into `SmartBillingServer/wwwroot/`, without `config.json`. The UI then calls the API on the address it was loaded from.
 
-3. **Create `SmartBillingServer/appsettings.json`.** See section 2.3. Use an absolute path in the SQLite `Data Source` if the site's working directory differs from the publish folder.
+3. *(Optional)* **Create `SmartBillingServer/appsettings.json`** to change the connection string (section 2.3). Use an absolute path in the SQLite `Data Source` if the site's working directory differs from the publish folder.
 
 4. **Publish the API**
 
@@ -284,9 +316,11 @@ Outside Development, the server opens `http://localhost:5000` on startup. Swagge
 | Problem | Fix |
 |---|---|
 | `Node.js is required to build and run this project.` | Install Node.js and make sure `node` is on your `PATH`. |
-| UI shows "Failed to load config" or "Backend URL is not configured" | `Client/public/config.json` (or `wwwroot/config.json` in production) is missing, or the key for the current environment is empty. See section 2.2. |
+| UI shows "Failed to load shop settings" with `npm start` | `Client/public/config.json` is missing, so the UI calls port 3000 instead of the API. See section 2.2. |
 | `localhost:3000/<route>` returns 404 under IIS | Install the IIS URL Rewrite module and keep `web.config` next to `index.html`. |
-| Barcode generation fails with a path error | The folder in `BarcodeGenerateFilePath` must exist, and the API process must be able to write to it. |
+| Barcode export fails with a path error | Check the barcode export file on the Setting page. It must be a full file path that the app can write to. |
+| Desktop app says "This build of Smart Billing doesn't contain the web app" | The exe was built in Debug without `Client/build`. Publish with the SingleExe profile, or run `npm run build` in `Client/` and rebuild. |
+| Desktop app says "Smart Billing could not start" | The message names a log file in `%LOCALAPPDATA%\SmartBilling\Logs`. A common cause is a database file from a newer version. |
 | `no such table` or other SQLite errors | Run `dotnet ef database update ...` (section 2.4). Check that the working directory contains the right `SmartBilling.db`. |
 | HTTPS certificate warnings locally, or `Unable to configure HTTPS endpoint` on startup | Run `dotnet dev-certs https --trust`. Or use `--launch-profile http` and set `backendUrl_DEV` to `http://localhost:5242`. |
 | `Couldn't start the SPA development server with command 'npm.cmd start'` | Start the UI yourself with `cd Client && npm start` (Option C). |

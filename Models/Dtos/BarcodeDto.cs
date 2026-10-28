@@ -10,8 +10,8 @@ namespace Models.Dtos
 {
     public class BarcodeDto
     {
-        [Required]
-        public required string FilePath { get; set; }
+        // Optional: when empty, the path saved in Setting (or the default) is used.
+        public string? FilePath { get; set; }
         [Required]
         public required List<Barcode> BarcodeList { get; set; }
     }

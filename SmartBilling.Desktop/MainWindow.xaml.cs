@@ -9,7 +9,8 @@ using System.Windows;
 namespace SmartBilling.Desktop
 {
     /// <summary>
-    /// Hosts the SmartBilling web app (served by SmartBillingServer) in WebView2.
+    /// Hosts the SmartBilling web app in WebView2, served by the built-in server or by a
+    /// SmartBillingServer on the network when a server URL is set.
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -17,6 +18,7 @@ namespace SmartBilling.Desktop
         private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(5) };
 
         private readonly DesktopSettings _settings = DesktopSettings.Load();
+        private readonly EmbeddedServer _embeddedServer = new();
         private readonly MainViewModel _viewModel;
         private LabelPrintService? _labelPrintService;
         private Uri? _serverUri;
@@ -69,10 +71,36 @@ namespace SmartBilling.Desktop
                 return;
 
             var url = _viewModel.ServerUrl.Trim();
+            var uri = url == "" ? await StartBuiltInServerAsync() : await CheckServerUrlAsync(url);
+            if (uri == null)
+                return;
+
+            _serverUri = uri;
+            _viewModel.HideOverlay();
+            AppView.CoreWebView2.Navigate(uri.AbsoluteUri);
+        }
+
+        private async Task<Uri?> StartBuiltInServerAsync()
+        {
+            _viewModel.ShowConnecting();
+            try
+            {
+                return await _embeddedServer.StartAsync();
+            }
+            catch (Exception ex)
+            {
+                var logFile = DesktopLog.Write(ex);
+                _viewModel.ShowError($"Smart Billing could not start.\n\n{ex.Message}\n\nDetails: {logFile}");
+                return null;
+            }
+        }
+
+        private async Task<Uri?> CheckServerUrlAsync(string url)
+        {
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
             {
-                _viewModel.ShowError("Enter a valid server URL, for example http://192.168.1.10:5000");
-                return;
+                _viewModel.ShowError("Enter a valid server URL, for example http://192.168.1.10:5000, or leave it blank to use the built-in server.");
+                return null;
             }
 
             _viewModel.ShowConnecting();
@@ -84,13 +112,24 @@ namespace SmartBilling.Desktop
             catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
             {
                 _viewModel.ShowError(
-                    $"Cannot reach the SmartBilling server at {url}. Check that the server is running and the address is correct.\n\n{ex.Message}");
-                return;
+                    $"Cannot reach the SmartBilling server at {url}. Check that the server is running and the address is correct, or clear the URL to use the built-in server.\n\n{ex.Message}");
+                return null;
             }
+            return uri;
+        }
 
-            _serverUri = uri;
-            _viewModel.HideOverlay();
-            AppView.CoreWebView2.Navigate(uri.AbsoluteUri);
+        protected override void OnClosed(EventArgs e)
+        {
+            base.OnClosed(e);
+            // Off the UI thread: StopAsync's continuations must not wait for this (blocked) dispatcher.
+            try
+            {
+                Task.Run(_embeddedServer.StopAsync).Wait(TimeSpan.FromSeconds(6));
+            }
+            catch (AggregateException ex)
+            {
+                DesktopLog.Write(ex);
+            }
         }
 
         private async Task SaveServerUrlAndConnectAsync()
@@ -122,7 +161,7 @@ namespace SmartBilling.Desktop
         private void OnNavigationCompleted(object? sender, CoreWebView2NavigationCompletedEventArgs e)
         {
             if (!e.IsSuccess && e.WebErrorStatus != CoreWebView2WebErrorStatus.OperationCanceled)
-                _viewModel.ShowError($"Could not load the SmartBilling app from {_viewModel.ServerUrl} ({e.WebErrorStatus}).");
+                _viewModel.ShowError($"Could not load the SmartBilling app from {_serverUri} ({e.WebErrorStatus}).");
         }
 
         private void OnNewWindowRequested(object? sender, CoreWebView2NewWindowRequestedEventArgs e)

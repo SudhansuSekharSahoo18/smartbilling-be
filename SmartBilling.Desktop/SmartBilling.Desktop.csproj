@@ -7,17 +7,60 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>smartbilling_icon.ico</ApplicationIcon>
+    <AssemblyName>SmartBilling</AssemblyName>
+    <Product>Smart Billing</Product>
+    <!-- The server is an exe project, but here it is only used as a library (it runs inside this process). -->
+    <ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
+    <ClientRoot>$(MSBuildThisFileDirectory)..\Client\</ClientRoot>
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="smartbilling_icon.ico" />
-    <None Update="desktopsettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\SmartBillingServer\SmartBillingServer.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="smartbilling_icon.ico" />
+  </ItemGroup>
+
+  <!-- Release builds build the React app (Client/) for production. Pass -p:SkipClientBuild=true to reuse an existing Client/build. -->
+  <Target Name="BuildClient" BeforeTargets="EmbedClientBuild" Condition="'$(Configuration)' == 'Release' And '$(SkipClientBuild)' != 'true'">
+    <Exec Command="node --version" ContinueOnError="true" StandardOutputImportance="low">
+      <Output TaskParameter="ExitCode" PropertyName="NodeExitCode" />
+    </Exec>
+    <Error Condition="'$(NodeExitCode)' != '0'" Text="Node.js is required to build the web app that is embedded in Smart Billing." />
+    <Exec WorkingDirectory="$(ClientRoot)" Command="npm install" />
+    <Exec WorkingDirectory="$(ClientRoot)" Command="npm run build" EnvironmentVariables="REACT_APP_ENVIRONMENT=PRODUCTION" />
+  </Target>
+
+  <!-- Embed Client/build so the exe serves the UI itself (see Services/EmbeddedServer.cs). config.json is left out:
+       without it the UI calls the API on its own origin, which is the built-in server. -->
+  <Target Name="EmbedClientBuild" BeforeTargets="BeforeBuild">
+    <ItemGroup>
+      <ClientBuildFile Include="$(ClientRoot)build\**\*" Exclude="$(ClientRoot)build\config.json;$(ClientRoot)build\**\*.map" />
+      <EmbeddedResource Include="@(ClientBuildFile)"
+                        LogicalName="wwwroot.$([System.String]::Copy('%(ClientBuildFile.RecursiveDir)%(ClientBuildFile.Filename)%(ClientBuildFile.Extension)').Replace('\','.'))"
+                        WithCulture="false" />
+    </ItemGroup>
+    <Warning Condition="'@(ClientBuildFile)' == ''"
+             Text="Client/build was not found, so the built-in server has no web app. Build in Release, or run 'npm run build' in Client/." />
+  </Target>
+
+  <!-- Publish only the exe. The built-in server is configured in code, so the server project's appsettings,
+       launchSettings and runtimeconfig files aren't needed; neither are symbols and API docs of referenced projects. -->
+  <Target Name="ExcludeExtraFilesFromPublish" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="$([System.String]::Copy('%(ResolvedFileToPublish.Filename)').StartsWith('appsettings'))
+                                        Or '%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'launchSettings.json'
+                                        Or '%(ResolvedFileToPublish.Filename)%(ResolvedFileToPublish.Extension)' == 'SmartBillingServer.runtimeconfig.json'
+                                        Or '%(ResolvedFileToPublish.Extension)' == '.pdb'
+                                        Or '%(ResolvedFileToPublish.Extension)' == '.xml'" />
+    </ItemGroup>
+  </Target>
 
 </Project>

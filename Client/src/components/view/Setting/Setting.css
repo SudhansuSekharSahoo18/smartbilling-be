@@ -103,3 +103,67 @@ label {
 .hc-badge--loading { background-color: #78350f; color: #fcd34d; }
 .hc-badge--ok      { background-color: #14532d; color: #86efac; }
 .hc-badge--error   { background-color: #7f1d1d; color: #fca5a5; }
+
+/* Shop details form and first-run setup */
+.ss-section {
+    margin-top: 32px;
+}
+
+.ss-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-width: 560px;
+}
+
+.ss-form label {
+    color: #f1f5f9;
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+.ss-form input {
+    font-size: 16px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #475569;
+}
+
+.ss-form .hc-btn {
+    align-self: flex-start;
+    margin-top: 16px;
+}
+
+.ss-form .hc-btn:disabled {
+    background-color: #475569;
+}
+
+.ss-hint {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin: 0;
+}
+
+.setup-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    box-sizing: border-box;
+}
+
+.setup-card {
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 32px;
+    width: 100%;
+    max-width: 600px;
+    color: #e2e8f0;
+}
+
+.setup-card p {
+    color: #94a3b8;
+    margin: 8px 0 16px 0;
+}

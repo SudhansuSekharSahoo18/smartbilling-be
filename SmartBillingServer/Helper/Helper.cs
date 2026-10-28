@@ -34,10 +34,9 @@ namespace SmartBillingServer.Helper
             return content;
         }
 
-        public static string BillToSaleReport(this IEnumerable<Bill> bills, string month, int year)
+        public static string BillToSaleReport(this IEnumerable<Bill> bills, string month, int year, string shopName = "")
         {
             var content = "";
-            var shopName = "";
             int startIndex = 7;
             int lastIndex = bills.Count() - 1 + startIndex;
             int i = 67; // ASCII value of C

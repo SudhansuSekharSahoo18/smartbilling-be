@@ -55,7 +55,7 @@ namespace SmartBilling.Desktop.ViewModels
 
         public void ShowConnecting()
         {
-            StatusMessage = $"Connecting to {ServerUrl}…";
+            StatusMessage = string.IsNullOrWhiteSpace(ServerUrl) ? "Starting Smart Billing…" : $"Connecting to {ServerUrl}…";
             IsBusy = true;
             IsOverlayVisible = true;
         }
