@@ -54,21 +54,32 @@ const ShopSettingsForm = ({ notify, onSaved, submitLabel = 'Save settings' }) =>
 
   return (
     <form className="ss-form" onSubmit={onSubmit}>
-      <label htmlFor="ss-shopName">Shop name *</label>
-      <input id="ss-shopName" value={form.shopName} onChange={onChange('shopName')} maxLength={200} autoFocus />
+      <div className="ss-field">
+        <label htmlFor="ss-shopName">Shop name *</label>
+        <input id="ss-shopName" type="text" value={form.shopName} onChange={onChange('shopName')} maxLength={200} autoFocus />
+      </div>
 
-      <label htmlFor="ss-shopAddress">Shop address</label>
-      <input id="ss-shopAddress" value={form.shopAddress} onChange={onChange('shopAddress')} maxLength={500} />
+      <div className="ss-field">
+        <label htmlFor="ss-shopGSTNumber">GSTIN</label>
+        <input id="ss-shopGSTNumber" type="text" value={form.shopGSTNumber} onChange={onChange('shopGSTNumber')} maxLength={20}
+          placeholder="e.g. 21ABCDE1234F1Z5" />
+      </div>
 
-      <label htmlFor="ss-shopGSTNumber">GSTIN</label>
-      <input id="ss-shopGSTNumber" value={form.shopGSTNumber} onChange={onChange('shopGSTNumber')} maxLength={20} />
+      <div className="ss-field ss-field--wide">
+        <label htmlFor="ss-shopAddress">Shop address</label>
+        <input id="ss-shopAddress" type="text" value={form.shopAddress} onChange={onChange('shopAddress')} maxLength={500} />
+      </div>
 
-      <label htmlFor="ss-barcodeFilePath">Barcode export file</label>
-      <input id="ss-barcodeFilePath" value={form.barcodeFilePath} onChange={onChange('barcodeFilePath')}
-        maxLength={500} placeholder={defaultBarcodeFilePath} />
-      <p className="ss-hint">Leave blank to use {defaultBarcodeFilePath || 'the default'}. The folder is created if it doesn't exist.</p>
+      <div className="ss-field ss-field--wide">
+        <label htmlFor="ss-barcodeFilePath">Barcode export file</label>
+        <input id="ss-barcodeFilePath" type="text" value={form.barcodeFilePath} onChange={onChange('barcodeFilePath')}
+          maxLength={500} placeholder={defaultBarcodeFilePath} />
+        <p className="ss-hint">Leave blank to use {defaultBarcodeFilePath || 'the default'}. The folder is created if it doesn't exist.</p>
+      </div>
 
-      <button type="submit" className="hc-btn" disabled={saving}>{saving ? 'Saving…' : submitLabel}</button>
+      <div className="ss-actions">
+        <button type="submit" disabled={saving}>{saving ? 'Saving…' : submitLabel}</button>
+      </div>
     </form>
   );
 };

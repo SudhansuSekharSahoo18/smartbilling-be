@@ -1,0 +1,19 @@
+.barcodeGrid {
+    height: 340px;
+}
+
+/* Labels are drawn at their real size in mm; show them on a sheet-like background. */
+.labelPreview {
+    max-height: 360px;
+    overflow: auto;
+    padding: 16px;
+    border-radius: var(--sb-radius-sm);
+    background-color: var(--sb-surface-muted);
+    border: 1px solid var(--sb-border);
+}
+
+.labelPreview .barcodeReport > div {
+    background-color: #fff;
+    margin-bottom: 8px;
+    box-shadow: 0 0 0 1px var(--sb-border);
+}

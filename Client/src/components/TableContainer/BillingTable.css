@@ -1,95 +1,136 @@
-.table-container {
-  padding: 0px;
-  background-color: white;
+.app .table-container.card {
+  padding: 0;
+  overflow: hidden;
 }
 
 .data-table {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  border-radius: 10px;
-  height: 400px;
+  height: calc(100vh - 260px);
+  min-height: 320px;
 }
 
-.table-content{
-  overflow-y: auto; 
-}
-
-/* Make the header sticky */
-.table-content thead th {
-  position: sticky;
-  top: 0;
-  background-color: #f1f1f1; /* Add background to make sticky header visible */
-  z-index: 1;
+.table-content {
+  flex: 1;
+  overflow-y: auto;
 }
 
 .data-table table {
+  width: 100%;
   border-collapse: collapse;
-  margin: 0px 0px;
+  font-size: 14px;
+  text-align: left;
+}
+
+.data-table th,
+.data-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--sb-border);
+}
+
+/* Sticky header while the item list scrolls. */
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  height: 40px;
+  background-color: var(--sb-surface-muted);
+  color: var(--sb-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.data-table tbody tr:hover td {
+  background-color: #f8fafc;
+}
+
+.data-table .num {
+  text-align: right;
+}
+
+.data-table .amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table .col-remove {
+  width: 36px;
+  padding-right: 0;
+}
+
+.data-table .col-barcode {
+  width: 110px;
+  color: var(--sb-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.app .data-table td input {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: var(--sb-radius-sm);
+  background-color: transparent;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+.app .data-table td input:hover {
+  border-color: var(--sb-border);
+}
+
+.app .data-table td input:focus {
+  outline: none;
+  border-color: var(--sb-primary);
+  background-color: var(--sb-surface);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.app .data-table .numberInput {
+  display: block;
+  width: 100%;
+  max-width: 110px;
+  margin-left: auto;
+}
+
+/* Cells with an input: the input's own padding lines its text up with the header. */
+.data-table td:has(input) {
+  padding-left: 1px;
+  padding-right: 1px;
+}
+
+.app .data-table .btn-remove {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--sb-text-muted);
   font-size: 18px;
-  text-align: left;
 }
 
-.data-table table th, table td {
-  padding: 5px 5px;
-  border: 1px solid #ddd;
+.app .data-table .btn-remove:hover {
+  background-color: var(--sb-danger-soft);
+  color: var(--sb-danger);
 }
 
-.data-table table th {
-  background-color: rgb(206, 206, 206);
-  color: black;
-  font-size: small;
+.table-total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--sb-border);
+  background-color: var(--sb-surface-muted);
+  color: var(--sb-text-muted);
 }
 
-.data-table table td{
-  background-color: white;
-  height: 30px;
-  font-size: small;
-}
-.data-table table td input{
-  height: 100%;
-  font-size: small;
-  /* padding: 5px; */
-  padding-left: 10px;
-}
-.data-table table td button{
-  font-size: small;
-  padding: 8px;
-  padding-top: 5px;
-  padding-bottom: 5px;
-  margin: 0px;
-  /* margin-left: 5px; */
-  background-color: red;
-}
-
-.data-table table tr:nth-of-type(even) {
-  background-color: #f3f3f3;
-}
-  
-.data-table table tr:nth-of-type(odd) {
-  background-color: #e8e8e8;
-}
-
-.data-table table tr:hover {
-  background-color: #c9c9c9;
-}
-
-.data-table table tr:last-of-type {
-  border-bottom: 2px solid #0b6f19;
-}
-
-.total-sum {
-  margin-left: 1020px;
-  text-align: left;
-  font-size: 20px;
-}  
-
-.data-table table td {
-  width: 500px;
-}
-
-.numberInput{
-  width: 80px;
+.table-total strong {
+  margin-left: 8px;
+  font-size: 18px;
+  color: var(--sb-text);
+  font-variant-numeric: tabular-nums;
 }
 
 input[type='number']::-webkit-outer-spin-button,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Import } from '../../APIEndpoints.js'
+import './FileUpload.css';
 
 const FileUpload = (props) => {
     const [file, setFile] = useState(null);
@@ -43,9 +44,13 @@ const FileUpload = (props) => {
     };
 
     return (
-        <form onSubmit={handleSubmit}>
-            <input type="file" onChange={handleFileChange} />
-            <button type="submit">Upload File</button>
+        <form className='fileUpload' onSubmit={handleSubmit}>
+            <label className='fileUpload-choose'>
+                <input type="file" onChange={handleFileChange} />
+                Choose file
+            </label>
+            <span className='fileUpload-name' title={file?.name}>{file ? file.name : 'No file chosen'}</span>
+            <button type="submit" className='btn-secondary' disabled={!file}>Upload</button>
         </form>
     );
 };

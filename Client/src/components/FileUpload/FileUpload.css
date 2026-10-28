@@ -1,0 +1,39 @@
+.fileUpload {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+/* The native file input is hidden; the label acts as its button. */
+.fileUpload-choose input[type='file'] {
+    display: none;
+}
+
+.app .fileUpload-choose {
+    display: inline-flex;
+    align-items: center;
+    height: var(--sb-control-height);
+    padding: 0 14px;
+    border: 1px dashed var(--sb-border-strong);
+    border-radius: var(--sb-radius-sm);
+    background-color: var(--sb-surface-muted);
+    color: var(--sb-text);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.app .fileUpload-choose:hover {
+    border-color: var(--sb-primary);
+    color: var(--sb-primary);
+}
+
+.fileUpload-name {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--sb-text-muted);
+    font-size: 13px;
+}

@@ -1,132 +1,391 @@
-.App {
-  text-align: center;
-  background-color: rgb(30, 43, 41);
-}
+/* App shell and shared building blocks. Everything is scoped to .app so printed bills and
+   labels (cloned into a print frame outside .app) keep their own look. */
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-button {
-  background-color: #007bff;
-  color: white;
-  padding: 10px 20px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  margin-right: 15px;
-  border: none;
-  border-radius: 5px;
-  /* cursor: pointer; */
-  font-size: 12px;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-input {
-  font-size: 20px;
-
-}
-.app-container {
-  display: flex;
-}
-
-.content {
-  margin-left: 20px; 
-  padding: 20px;
-  width: 100%;
-}
-
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-}
-
-h1 {
-  color: #333;
-}
-
-/* App.css */
 .app {
   display: flex;
+  min-height: 100vh;
+  font-family: var(--sb-font);
+  font-size: 14px;
+  color: var(--sb-text);
+  background-color: var(--sb-bg);
 }
 
-.nav {
+/* ---------- Sidebar ---------- */
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 220px;
   height: 100vh;
-  width: 120px;
-  background-color: rgb(228, 123, 3);
-  /* background-color: whitesmoke; and tab as olive green */
-  
-  padding: 10px;
+  padding: 16px 12px;
+  box-sizing: border-box;
+  background-color: var(--sb-sidebar);
+  color: var(--sb-sidebar-text);
 }
 
-.nav ul {
-  list-style-type: none;
-  padding: 0;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 8px 20px;
 }
 
-
-.nav ul li {
-  margin-bottom: 10px;
-  /* background-color: white; */
-  margin: 0px;
-  padding: 8px;
-  border-radius: 5px;
+.brand-mark {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background-color: var(--sb-accent);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
 }
 
-.nav ul li a {
+.brand-name {
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.brand-shop {
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 140px;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: var(--sb-sidebar-text);
   text-decoration: none;
-  color: white;
-  /* font-weight: bold; */
+  font-size: 14px;
+  transition: background-color 0.15s, color 0.15s;
 }
 
-.nav ul li:hover {
-  /* text-decoration: underline; */
-  background-color: gray;
+.sidebar-link:hover {
+  background-color: var(--sb-sidebar-hover);
+  color: #fff;
+}
+
+.sidebar-link.active {
+  background-color: var(--sb-primary);
+  color: #fff;
+}
+
+.sidebar-link .icon {
+  flex-shrink: 0;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 8px 12px 0;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ---------- Main area ---------- */
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  padding: 20px 28px 0;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--sb-text);
+}
+
+.page-subtitle {
+  margin: 2px 0 0;
+  color: var(--sb-text-muted);
+  font-size: 13px;
 }
 
 .content {
   flex: 1;
+  padding: 16px 28px 28px;
+  min-width: 0;
+}
+
+/* ---------- Cards and layout helpers ---------- */
+
+.card {
+  background-color: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  border-radius: var(--sb-radius);
+  box-shadow: var(--sb-shadow);
   padding: 20px;
+  box-sizing: border-box;
 }
 
-.selectedNav{
-  background-color: #282c34;
+.card + .card {
+  margin-top: 16px;
 }
 
-label{
-  color: white;
+/* Inside grid/flex layouts the gap does the spacing. */
+.stat-grid > .card,
+.billingMain > .card,
+.saleReport-downloads > .card {
+  margin-top: 0;
+}
+
+.card-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--sb-text);
+}
+
+.card-subtitle {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--sb-text-muted);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.card-header .card-title {
+  margin: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 24px;
+  background-color: var(--sb-border);
+  margin: 0 4px;
+}
+
+.muted {
+  color: var(--sb-text-muted);
+}
+
+.empty-state {
+  padding: 24px;
+  text-align: center;
+  color: var(--sb-text-muted);
+}
+
+/* ---------- Buttons ---------- */
+
+.app button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: var(--sb-control-height);
+  padding: 0 16px;
+  margin: 0;
+  border: 1px solid transparent;
+  border-radius: var(--sb-radius-sm);
+  background-color: var(--sb-primary);
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.app button:hover {
+  background-color: var(--sb-primary-hover);
+}
+
+.app button:focus-visible {
+  outline: 2px solid var(--sb-primary);
+  outline-offset: 2px;
+}
+
+.app button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.app button.btn-secondary {
+  background-color: var(--sb-surface);
+  border-color: var(--sb-border-strong);
+  color: var(--sb-text);
+}
+
+.app button.btn-secondary:hover:not(:disabled) {
+  background-color: var(--sb-surface-muted);
+  border-color: #94a3b8;
+}
+
+.app button.btn-danger {
+  background-color: var(--sb-surface);
+  border-color: #fecaca;
+  color: var(--sb-danger);
+}
+
+.app button.btn-danger:hover:not(:disabled) {
+  background-color: var(--sb-danger-soft);
+  border-color: var(--sb-danger);
+}
+
+.app button.btn-lg {
+  height: 44px;
+  padding: 0 20px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.app button.btn-block {
+  width: 100%;
+}
+
+/* ---------- Form fields ---------- */
+
+.app input,
+.app select,
+.app textarea {
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--sb-text);
+}
+
+.app input[type='text'],
+.app input[type='number'],
+.app input[type='month'],
+.app input:not([type]),
+.app select {
+  height: var(--sb-control-height);
+  padding: 0 10px;
+  border: 1px solid var(--sb-border-strong);
+  border-radius: var(--sb-radius-sm);
+  background-color: var(--sb-surface);
+  box-sizing: border-box;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.app input:focus,
+.app select:focus {
+  outline: none;
+  border-color: var(--sb-primary);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.app input[readonly] {
+  background-color: var(--sb-surface-muted);
+}
+
+.app label {
+  color: var(--sb-text);
+}
+
+.app input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--sb-primary);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px 16px;
+}
+
+/* ---------- Stat tiles ---------- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat-card .card-subtitle {
+  margin: 0 0 6px;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--sb-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Data grid (ag-grid quartz) ---------- */
+
+.app .ag-theme-quartz {
+  --ag-font-family: var(--sb-font);
+  --ag-font-size: 13px;
+  --ag-foreground-color: var(--sb-text);
+  --ag-header-background-color: var(--sb-surface-muted);
+  --ag-header-foreground-color: var(--sb-text-muted);
+  --ag-border-color: var(--sb-border);
+  --ag-row-hover-color: #f1f5f9;
+  --ag-selected-row-background-color: var(--sb-primary-soft);
+  --ag-active-color: var(--sb-primary);
+  --ag-wrapper-border-radius: var(--sb-radius);
+  --ag-row-height: 40px;
+  --ag-header-height: 42px;
+}
+
+.app .ag-theme-quartz .ag-header-cell-text {
+  font-weight: 600;
+}
+
+.grid-card {
+  height: 460px;
+}
+
+/* Hidden but still rendered, so react-to-print can copy it. */
+.print-area {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/* First-run setup has no sidebar. */
+.app.app--setup {
+  display: block;
 }

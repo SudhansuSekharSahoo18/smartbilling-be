@@ -31,7 +31,7 @@ const HealthCard = ({ title, description, check }) => (
   </div>
 );
 
-const Setting = ({ notify }) => {
+const Setting = ({ notify, onSettingsSaved }) => {
   const [api,    setApi]    = useState(initialCheck());
   const [db,     setDb]     = useState(initialCheck());
   const [config, setConfig] = useState(initialCheck());
@@ -68,41 +68,50 @@ const Setting = ({ notify }) => {
 
   return (
     <div className="hc-page">
-      <div className="hc-header">
-        <h2 className="hc-title">Shop Details</h2>
+      <div className="card">
+        <h2 className="card-title">Shop details</h2>
+        <p className="card-subtitle">Printed on bills and barcode labels.</p>
+        <ShopSettingsForm notify={notify} onSaved={onSettingsSaved} />
       </div>
-      <ShopSettingsForm notify={notify} />
 
       {isDesktop() && (
-        <>
-          <div className="hc-header ss-section">
-            <h2 className="hc-title">Label Printer</h2>
+        <div className="card">
+          <div className="card-header">
+            <div>
+              <h2 className="card-title">Label printer</h2>
+              <p className="card-subtitle ss-flush">The printer used by Print labels on the Barcode page.</p>
+            </div>
+            <button className="btn-secondary" onClick={onChooseLabelPrinterClicked}>Choose label printer…</button>
           </div>
-          <button className="hc-btn" onClick={onChooseLabelPrinterClicked}>Choose label printer…</button>
-        </>
+        </div>
       )}
 
-      <div className="hc-header ss-section">
-        <h2 className="hc-title">Health Check</h2>
-        <button className="hc-btn" onClick={runAll}>Run Checks</button>
-      </div>
+      <div className="card">
+        <div className="card-header">
+          <div>
+            <h2 className="card-title">Health check</h2>
+            <p className="card-subtitle ss-flush">Check that the app, database and settings are working.</p>
+          </div>
+          <button onClick={runAll}>Run checks</button>
+        </div>
 
-      <div className="hc-grid">
-        <HealthCard
-          title="API"
-          description="Verifies the backend API is reachable and responding."
-          check={api}
-        />
-        <HealthCard
-          title="Database"
-          description="Confirms the application can connect to the configured SQLite database."
-          check={db}
-        />
-        <HealthCard
-          title="Configuration"
-          description="Checks that the shop details have been entered."
-          check={config}
-        />
+        <div className="hc-grid">
+          <HealthCard
+            title="API"
+            description="Verifies the backend API is reachable and responding."
+            check={api}
+          />
+          <HealthCard
+            title="Database"
+            description="Confirms the application can connect to the configured SQLite database."
+            check={db}
+          />
+          <HealthCard
+            title="Configuration"
+            description="Checks that the shop details have been entered."
+            check={config}
+          />
+        </div>
       </div>
     </div>
   );

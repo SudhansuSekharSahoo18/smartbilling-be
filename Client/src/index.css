@@ -1,12 +1,37 @@
+/* Design tokens. Pages use these instead of hard-coded colours. */
+:root {
+  --sb-font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --sb-bg: #f3f5f9;
+  --sb-surface: #ffffff;
+  --sb-surface-muted: #f8fafc;
+  --sb-border: #e2e8f0;
+  --sb-border-strong: #cbd5e1;
+  --sb-text: #0f172a;
+  --sb-text-muted: #64748b;
+  --sb-primary: #2563eb;
+  --sb-primary-hover: #1d4ed8;
+  --sb-primary-soft: #eff6ff;
+  --sb-danger: #dc2626;
+  --sb-danger-hover: #b91c1c;
+  --sb-danger-soft: #fef2f2;
+  --sb-success: #16a34a;
+  --sb-accent: #f97316;
+  --sb-sidebar: #0f172a;
+  --sb-sidebar-hover: #1e293b;
+  --sb-sidebar-text: #cbd5e1;
+  --sb-radius: 10px;
+  --sb-radius-sm: 6px;
+  --sb-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --sb-control-height: 36px;
+}
+
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  /* Printed bills and labels are cloned outside .app and keep this font. */
+  font-family: Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  
-  background-color: rgb(70, 78, 77);
+  background-color: var(--sb-bg);
 }
 
 code {

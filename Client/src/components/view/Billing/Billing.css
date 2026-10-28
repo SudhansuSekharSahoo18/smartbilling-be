@@ -1,19 +1,60 @@
-.print-area {
-    /* opacity: 0;
-    height: 0px; */
-    visibility: collapse;
-}
-
-.customerDetails {
-    border: 5px solid rgb(32, 32, 32);
-    border-radius: 10px;
-    display: flex;
-    flex-wrap: wrap;
-    margin-left: 15px;
-    padding: 15px;
-    width: 300px;
-}
-
 .billingSection {
     display: flex;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.billingMain {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.app .scanBar {
+    display: flex;
+    gap: 8px;
+    padding: 12px;
+}
+
+.app .scanBar input {
+    flex: 1;
+    height: 44px;
+    font-size: 16px;
+}
+
+.app .scanBar button {
+    height: 44px;
+}
+
+.app .card.customerDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    width: 300px;
+    flex-shrink: 0;
+    margin-top: 0;
+}
+
+.summaryDivider {
+    height: 1px;
+    background-color: var(--sb-border);
+    margin: 4px 0;
+}
+
+.netAmount {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 12px 14px;
+    border-radius: var(--sb-radius-sm);
+    background-color: var(--sb-primary-soft);
+    color: var(--sb-text-muted);
+}
+
+.netAmount strong {
+    font-size: 24px;
+    color: var(--sb-text);
+    font-variant-numeric: tabular-nums;
 }

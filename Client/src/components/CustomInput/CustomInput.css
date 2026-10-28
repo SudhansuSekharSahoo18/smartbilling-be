@@ -1,21 +1,16 @@
-.customInput input{
-    background-color: rgb(226, 225, 225);
-    border: 0px;
-    font-size: small;
-    padding-left: 10px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-}
-
-.customInput label {
-    width: 150px;
-    display: inline-block;
-    font-size: small;
-    /* font-weight: 100; */
-}
-
 .customInput {
-    width: 330px;
-    margin-right: 20px;
-    /* background-color: pink; */
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+}
+
+.app .customInput label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--sb-text-muted);
+}
+
+.app .customInput input {
+    width: 100%;
 }

@@ -8,6 +8,9 @@ import Report from '../../Report/Report';
 import { formatDate } from '../../../Helper/dateHelper.js'
 import { getBackendUrl, getConfig } from '../../../Helper/apiHelper.js';
 import { DeleteBill } from '../../../APIEndpoints.js'
+import { formatRupees } from '../../../Helper/format.js';
+
+const PAYMENT_LABELS = { cash: 'Cash', upi: 'UPI', creditcard: 'Credit card', debitcard: 'Debit card' };
 
 const Bills = (props) => {
   const gridRef = useRef(null);
@@ -33,19 +36,20 @@ const Bills = (props) => {
   const paginationPageSizeSelector = [20, 50, 100];
 
   const [colDefs, setColDefs] = useState([
-    { field: "id", filter: true },
-    { field: "createdDateTime" },
-    { field: "totalAmount" },
-    { field: "quantity" },
-    { field: "tax", editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['5%', '12%', '18%'], } },
+    { field: "id", headerName: "Bill no.", flex: 0.7, filter: true },
+    { field: "createdDateTime", headerName: "Date", flex: 1.4, valueFormatter: p => p.value ? formatDate(p.value) : '' },
+    { field: "customerName", headerName: "Customer", flex: 1.4, filter: true },
+    { field: "modeOfPayment", headerName: "Payment", flex: 1, valueFormatter: p => PAYMENT_LABELS[p.value] ?? p.value ?? '' },
+    { headerName: "Items", flex: 0.7, valueGetter: p => (p.data?.billItems ?? []).reduce((sum, item) => sum + item.quantity, 0) },
+    { field: "totalAmount", headerName: "Total", flex: 1, valueFormatter: p => formatRupees(p.value) },
   ]);
 
   const [colDefs2, setColDefs2] = useState([
-    { field: "id", filter: true },
-    { field: "itemName" },
-    { field: "amount" },
-    { field: "quantity" },
-    { field: "price", editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['5%', '12%', '18%'], } },
+    { field: "itemName", headerName: "Item", flex: 2 },
+    { field: "mrp", headerName: "MRP", flex: 1, valueFormatter: p => formatRupees(p.value) },
+    { field: "quantity", headerName: "Qty", flex: 0.7 },
+    { field: "discountPercentage", headerName: "Discount %", flex: 1 },
+    { field: "amount", headerName: "Amount", flex: 1, valueFormatter: p => formatRupees(p.value) },
   ]);
 
 
@@ -138,23 +142,29 @@ const Bills = (props) => {
   }, []);
 
   return (
-    <div  >
-      {!showDetail && <div className="ag-theme-quartz" style={{ height: 500 }} >
-        <ReactToPrint
-          trigger={() => {
-            return <button>Print Bill</button>;
-          }}
-          content={() => componentRef.current}
-          ref={reactToPrintRef}
-        />
-        <button onClick={OnDeleteButtonClicked}>Delete</button>
-        <AgGridReact rowData={rowData} columnDefs={colDefs} rowSelection={'multiple'}
-          ref={gridRef}
-          onRowDoubleClicked={(e) => onDoubleClick(e)}
-          onRowClicked={(e) => OnSelectionChanged(e)}
-          pagination={pagination} paginationPageSize={paginationPageSize}
-          paginationPageSizeSelector={paginationPageSizeSelector}
-        />
+    <div>
+      {!showDetail && <div className='card'>
+        <div className='toolbar'>
+          <ReactToPrint
+            trigger={() => {
+              return <button disabled={!bill}>Print bill</button>;
+            }}
+            content={() => componentRef.current}
+            ref={reactToPrintRef}
+          />
+          <button className='btn-danger' onClick={OnDeleteButtonClicked}>Delete</button>
+          <span className='toolbar-spacer' />
+          <span className='muted'>{bill ? `Bill ${bill.id} selected` : 'Select a bill to print or delete it'}</span>
+        </div>
+        <div className="ag-theme-quartz grid-card">
+          <AgGridReact rowData={rowData} columnDefs={colDefs} rowSelection={'multiple'}
+            ref={gridRef}
+            onRowDoubleClicked={(e) => onDoubleClick(e)}
+            onRowClicked={(e) => OnSelectionChanged(e)}
+            pagination={pagination} paginationPageSize={paginationPageSize}
+            paginationPageSizeSelector={paginationPageSizeSelector}
+          />
+        </div>
         {/* print */}
         <div className='print-area'>
           <div ref={componentRef}>
@@ -164,14 +174,17 @@ const Bills = (props) => {
         </div>
       </div>}
       {showDetail &&
-        <div>
-          <button onClick={() => setShowDetail(false)}>Back</button>
-          <label htmlFor="">Barcode </label>
-          <input type="text" enterKeyHint='hello' />
-          <button>Submit</button>
-          <button>Return</button>
+        <div className='card'>
+          <div className='toolbar'>
+            <button className='btn-secondary' onClick={() => setShowDetail(false)}>← Back to bills</button>
+            <span className='toolbar-spacer' />
+            <label htmlFor="returnBarcode" className='muted'>Barcode</label>
+            <input id="returnBarcode" type="text" />
+            <button>Submit</button>
+            <button className='btn-secondary'>Return</button>
+          </div>
 
-          <div className="ag-theme-quartz" style={{ height: 500 }} >
+          <div className="ag-theme-quartz grid-card">
             <AgGridReact rowData={billItems} columnDefs={colDefs2} rowSelection={'multiple'}
               pagination={pagination} paginationPageSize={paginationPageSize}
               paginationPageSizeSelector={paginationPageSizeSelector}

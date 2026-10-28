@@ -1,41 +1,31 @@
-.ld-page {
-  color: #1f2933;
+﻿.ld-page {
+  color: var(--sb-text);
   font-size: 13px;
-  /* The app's content column grows with its content, so cap the width here (nav + padding)
-     to keep the properties panel on screen and let only the canvas scroll. */
-  max-width: calc(100vw - 220px);
+  /* Let only the canvas scroll; the panels stay on screen. */
+  max-width: 100%;
 }
 
-.ld-page input,
-.ld-page select {
+.app .ld-page input,
+.app .ld-page select {
+  height: 32px;
   font-size: 13px;
-  padding: 4px 6px;
-  border: 1px solid #c3ccd5;
-  border-radius: 4px;
-  box-sizing: border-box;
+  padding: 0 8px;
 }
 
-.ld-page label {
-  color: #1f2933;
+.app .ld-page label {
+  color: var(--sb-text-muted);
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  font-weight: 600;
+  gap: 4px;
+  font-weight: 500;
   font-size: 12px;
 }
 
-.ld-page button {
-  margin: 0;
-}
-
-.ld-page button:disabled {
-  background-color: #9aa5b1;
-}
-
 .ld-page h3 {
-  color: #1f2933;
+  color: var(--sb-text);
   margin: 4px 0 8px;
   font-size: 14px;
+  font-weight: 600;
 }
 
 .ld-toolbar {
@@ -43,13 +33,15 @@
   flex-wrap: wrap;
   align-items: flex-end;
   gap: 12px;
-  background: white;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 12px;
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  box-shadow: var(--sb-shadow);
+  padding: 14px 16px;
+  border-radius: var(--sb-radius);
+  margin-bottom: 16px;
 }
 
-.ld-toolbar input {
+.app .ld-toolbar input {
   width: 90px;
 }
 
@@ -61,37 +53,45 @@
 }
 
 .ld-unsaved {
-  color: #b54708;
+  color: #b45309;
   font-weight: 600;
 }
 
-.ld-secondary {
-  background-color: #52606d;
+.app .ld-page button.ld-secondary {
+  background-color: var(--sb-surface);
+  border-color: var(--sb-border-strong);
+  color: var(--sb-text);
 }
 
-.ld-secondary:hover {
-  background-color: #3e4c59;
+.app .ld-page button.ld-secondary:hover:not(:disabled) {
+  background-color: var(--sb-surface-muted);
+  border-color: #94a3b8;
 }
 
-.ld-danger {
-  background-color: #c62828;
+.app .ld-page button.ld-danger {
+  background-color: var(--sb-surface);
+  border-color: #fecaca;
+  color: var(--sb-danger);
   margin-top: 8px;
 }
 
-.ld-danger:hover {
-  background-color: #8e1c1c;
+.app .ld-page button.ld-danger:hover:not(:disabled) {
+  background-color: var(--sb-danger-soft);
+  border-color: var(--sb-danger);
 }
 
 .ld-body {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: flex-start;
 }
 
 .ld-panel {
-  background: white;
-  border-radius: 8px;
-  padding: 12px;
+  background: var(--sb-surface);
+  border: 1px solid var(--sb-border);
+  box-shadow: var(--sb-shadow);
+  border-radius: var(--sb-radius);
+  padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -99,11 +99,32 @@
 }
 
 .ld-toolbox {
-  width: 170px;
+  width: 180px;
+}
+
+/* "Add to label" buttons: a quiet list rather than a stack of primary buttons. */
+.app .ld-toolbox button {
+  justify-content: flex-start;
+  background-color: var(--sb-surface);
+  border-color: var(--sb-border);
+  color: var(--sb-text);
+}
+
+.app .ld-toolbox button:hover {
+  background-color: var(--sb-primary-soft);
+  border-color: var(--sb-primary);
+  color: var(--sb-primary);
+}
+
+.app .ld-toolbox button::before {
+  content: '+';
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--sb-primary);
 }
 
 .ld-properties {
-  width: 240px;
+  width: 250px;
 }
 
 .ld-row {
@@ -117,36 +138,38 @@
   min-width: 0;
 }
 
-.ld-row input {
+.app .ld-row input {
   width: 100%;
 }
 
-.ld-check {
-  flex-direction: row !important;
+.app .ld-page .ld-check {
+  flex-direction: row;
   align-items: center;
-  gap: 6px !important;
+  gap: 6px;
+  color: var(--sb-text);
 }
 
 .ld-hint {
-  color: #52606d;
+  color: var(--sb-text-muted);
   margin: 0;
 }
 
 .ld-canvas {
   flex: 1;
   min-width: 0;
-  background: #e4e7eb;
-  border-radius: 8px;
+  background: #e8edf3;
+  border: 1px solid var(--sb-border);
+  border-radius: var(--sb-radius);
   padding: 16px;
   overflow: auto;
 }
 
 .ld-canvas-info {
-  color: #52606d;
+  color: var(--sb-text-muted);
   margin-bottom: 12px;
 }
 
 .ld-label-frame {
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
   touch-action: none;
 }

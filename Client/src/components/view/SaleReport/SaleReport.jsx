@@ -66,13 +66,25 @@ const SaleReport = (props) => {
 
   return (
     <div className='saleReport'>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-        <Dropdown label={'Select Month'} options={monthOptions} onSelect={handleSelectMonth} value={selectedMonth} />
-        <Dropdown label={'Select Year'} options={yearOptions} onSelect={handleSelectYear} value={selectedYear} />
+      <div className='card'>
+        <h2 className='card-title'>Period</h2>
+        <p className='card-subtitle'>Choose the month to report on.</p>
+        <div className='saleReport-period'>
+          <Dropdown label={'Month'} options={monthOptions} onSelect={handleSelectMonth} value={selectedMonth} />
+          <Dropdown label={'Year'} options={yearOptions} onSelect={handleSelectYear} value={selectedYear} />
+        </div>
       </div>
-      <div style={{ marginTop: '1rem', display: 'flex', gap: '0.75rem' }}>
-        <button onClick={OnDownloadSaleReportClicked}>Download Sale Report (CSV)</button>
-        <button onClick={OnDownloadTaxSummaryClicked}>Download Tax Summary (Excel)</button>
+      <div className='saleReport-downloads'>
+        <div className='card'>
+          <h2 className='card-title'>Sale register</h2>
+          <p className='card-subtitle'>Every bill in the month with GST split by rate. CSV file.</p>
+          <button onClick={OnDownloadSaleReportClicked}>Download sale report</button>
+        </div>
+        <div className='card'>
+          <h2 className='card-title'>Tax summary</h2>
+          <p className='card-subtitle'>Taxable value and GST grouped by HSN code. Excel file.</p>
+          <button onClick={OnDownloadTaxSummaryClicked}>Download tax summary</button>
+        </div>
       </div>
     </div>
   );

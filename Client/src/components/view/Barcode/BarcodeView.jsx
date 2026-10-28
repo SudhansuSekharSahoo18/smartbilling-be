@@ -10,6 +10,8 @@ import { GenerateBarcode } from '../../../APIEndpoints.js'
 import { getBackendUrl, getConfig } from '../../../Helper/apiHelper.js';
 import { isDesktop, sendToDesktop } from '../../../Helper/desktopBridge.js';
 import { DEFAULT_DESIGN, buildPrintJob, loadLabelDesign, pageWidthMm } from '../../../Helper/labelDesign.js';
+import { formatRupees } from '../../../Helper/format.js';
+import './BarcodeView.css';
 
 
 const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
@@ -31,10 +33,10 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
   ]);
 
   const [colDefs, setColDefs] = useState([
-    { field: "itemCode", editable: true, filter: true },
-    { field: "itemName", editable: true },
-    { field: "price", editable: true },
-    { field: "quantity", editable: true },
+    { field: "itemCode", headerName: "Item code", flex: 1, editable: true, filter: true },
+    { field: "itemName", headerName: "Item name", flex: 2, editable: true },
+    { field: "price", flex: 1, editable: true, valueFormatter: p => formatRupees(p.value) },
+    { field: "quantity", headerName: "Labels", flex: 1, editable: true },
   ]);
 
   const OnDeleteButtonClicked = async () => {
@@ -176,27 +178,41 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
   }, []);
 
   return (
-    <div className="ag-theme-quartz" style={{ height: 500 }} >
-      {/* <FolderChooser /> */}
-      <button onClick={() => OnGenerateBarcodeClicked()}>Export</button>
-      <button onClick={() => onAddItemButtonClicked()}>Add Item</button>
-      <button onClick={() => onClearItemButtonClicked()}>Clear</button>
-      <button onClick={() => OnDeleteButtonClicked()}>Delete</button>
-      <button onClick={() => onPrintLabelsClicked()}>Print Labels</button>
-      {isDesktop() && <button onClick={() => onChooseLabelPrinterClicked()}>Label printer…</button>}
-      <ReactToPrint
-        trigger={() => <span hidden />}
-        content={() => componentRef.current}
-        pageStyle={`@page { size: ${pageWidthMm(labelDesign)}mm ${labelDesign.heightMm}mm; margin: 0 } body { margin: 0 }`}
-        ref={reactToPrintRef}
-      />
-      <AgGridReact rowData={rowData} columnDefs={colDefs}
-        ref={gridRef}
-        rowSelection={'single'}
-        onSelectionChanged={() => onSelectionChanged()}
-      />
-      <div ref={componentRef}>
-        <BarcodeReport barcodeList={rowData} shopName={shopName} design={labelDesign} />
+    <div>
+      <div className='card'>
+        <div className='toolbar'>
+          <button onClick={() => onPrintLabelsClicked()}>Print labels</button>
+          {isDesktop() && <button className='btn-secondary' onClick={() => onChooseLabelPrinterClicked()}>Label printer…</button>}
+          <span className='toolbar-divider' />
+          <button className='btn-secondary' onClick={() => onAddItemButtonClicked()}>Add row</button>
+          <button className='btn-danger' onClick={() => OnDeleteButtonClicked()}>Delete</button>
+          <button className='btn-secondary' onClick={() => onClearItemButtonClicked()}>Clear all</button>
+          <span className='toolbar-spacer' />
+          <button className='btn-secondary' onClick={() => OnGenerateBarcodeClicked()}>Export CSV</button>
+        </div>
+        <ReactToPrint
+          trigger={() => <span hidden />}
+          content={() => componentRef.current}
+          pageStyle={`@page { size: ${pageWidthMm(labelDesign)}mm ${labelDesign.heightMm}mm; margin: 0 } body { margin: 0 }`}
+          ref={reactToPrintRef}
+        />
+        <div className="ag-theme-quartz barcodeGrid">
+          <AgGridReact rowData={rowData} columnDefs={colDefs}
+            ref={gridRef}
+            rowSelection={'single'}
+            onSelectionChanged={() => onSelectionChanged()}
+          />
+        </div>
+      </div>
+      <div className='card'>
+        <h2 className='card-title'>Label preview</h2>
+        <p className='card-subtitle'>One label per unit of quantity, as set on the Label Design page.</p>
+        <div className='labelPreview'>
+          <div ref={componentRef}>
+            <BarcodeReport barcodeList={rowData} shopName={shopName} design={labelDesign} />
+          </div>
+          {rowData.length === 0 && <div className='empty-state'>No labels to print. Add items from Stock with "Add to barcode", or add a row here.</div>}
+        </div>
       </div>
     </div>
   );

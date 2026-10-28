@@ -10,7 +10,12 @@
 
 .report th, .report td {
     font-size: 10px;
-    border-bottom: 1px dotted black; 
+    border-bottom: 1px dotted black;
+}
+
+/* Was set by an unscoped "table td" rule in BillingTable.css; kept so printed bills don't change. */
+.report td {
+    padding: 5px 5px;
 }
 
 .report div {

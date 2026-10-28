@@ -9,8 +9,26 @@ import { postRequest, patchRequest, getBackendUrl } from '../../../Helper/apiHel
 import CustomCheckBox from '../../CustomCheckBox/CustomCheckBox.jsx';
 import { GetTotalSaleByDate, GetMonthlySales, GetDailySales } from '../../../APIEndpoints.js'
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
+import { formatRupees } from '../../../Helper/format.js';
+
+// Matches the --sb-* tokens in index.css (recharts needs literal colours).
+const CHART = {
+  daily: '#2563eb',
+  monthly: '#f97316',
+  grid: '#e2e8f0',
+  axis: '#64748b',
+  cursor: '#cbd5e1',
+  tooltip: { backgroundColor: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, boxShadow: '0 4px 12px rgba(15,23,42,0.08)', color: '#0f172a' },
+};
+
+// Axis ticks: ₹950, ₹1.2k, ₹3.4L
+const shortRupees = (value) => {
+  if (value >= 100000) return `₹${(value / 100000).toFixed(1).replace(/\.0$/, '')}L`;
+  if (value >= 1000) return `₹${(value / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+  return `₹${value}`;
+};
 
 
 const Dashboard = (props) => {
@@ -68,58 +86,79 @@ const Dashboard = (props) => {
       });
   }, [selectedMonth]);
 
+  const fyStartYear = now.getMonth() >= 3 ? now.getFullYear() : now.getFullYear() - 1;
+  const fyLabel = `FY ${fyStartYear}-${String(fyStartYear + 1).slice(-2)}`;
+  const monthTotal = dailySales.reduce((sum, d) => sum + (d.totalSale ?? 0), 0);
+  const fyTotal = monthlySales.reduce((sum, m) => sum + (m.totalSale ?? 0), 0);
+  const selectedMonthLabel = new Date(`${selectedMonth}-01T00:00:00`).toLocaleString('en-IN', { month: 'long', year: 'numeric' });
+
   return (
     <div className='dashboard'>
-        <div>Today's Total Sales: {totalSale}</div>
-        <div>Payments </div>
-        <div>UPI:</div>
-        <div>Cash: </div>
-        <div>Card Payment: </div>
+      <div className='stat-grid'>
+        <div className='card stat-card'>
+          <p className='card-subtitle'>Today's sales</p>
+          <div className='stat-value'>{formatRupees(totalSale) || '₹0'}</div>
+        </div>
+        <div className='card stat-card'>
+          <p className='card-subtitle'>{selectedMonthLabel}</p>
+          <div className='stat-value'>{isDailyLoading || dailyError ? '–' : formatRupees(monthTotal) || '₹0'}</div>
+        </div>
+        <div className='card stat-card'>
+          <p className='card-subtitle'>{fyLabel}</p>
+          <div className='stat-value'>{formatRupees(fyTotal) || '₹0'}</div>
+        </div>
+      </div>
 
-        <div style={{ marginTop: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-            <h3 style={{ margin: 0 }}>Daily Sales</h3>
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={e => setSelectedMonth(e.target.value)}
-              style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid #555', backgroundColor: '#333', color: '#fff' }}
-            />
-          </div>
-          {isDailyLoading && <div style={{ color: '#ccc', padding: '1rem' }}>Loading...</div>}
-          {dailyError && <div style={{ color: '#f88', padding: '1rem' }}>Failed to load data: {dailyError}. Make sure the server is running and restarted.</div>}
-          {!isDailyLoading && !dailyError && (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={dailySales} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-              <XAxis dataKey="day" tick={{ fill: '#ccc' }} axisLine={{ stroke: '#777' }} />
-              <YAxis tick={{ fill: '#ccc' }} axisLine={{ stroke: '#777' }} />
+      <div className='card'>
+        <div className='card-header'>
+          <h2 className='card-title'>Daily sales</h2>
+          <input
+            type="month"
+            aria-label="Month"
+            value={selectedMonth}
+            onChange={e => setSelectedMonth(e.target.value)}
+          />
+        </div>
+        {isDailyLoading && <div className='empty-state'>Loading…</div>}
+        {dailyError && <div className='empty-state chart-error'>Failed to load data: {dailyError}. Make sure the server is running.</div>}
+        {!isDailyLoading && !dailyError && (
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={dailySales} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
+              <XAxis dataKey="day" tick={{ fill: CHART.axis, fontSize: 12 }} axisLine={{ stroke: CHART.grid }} tickLine={false} />
+              <YAxis tick={{ fill: CHART.axis, fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={shortRupees} width={56} />
               <Tooltip
-                contentStyle={{ backgroundColor: '#333', border: '1px solid #555', color: '#fff' }}
-                formatter={(value) => [`₹${value.toFixed(2)}`, 'Total Sale']}
+                cursor={{ stroke: CHART.cursor, strokeWidth: 1 }}
+                contentStyle={CHART.tooltip}
+                formatter={(value) => [formatRupees(value), 'Sales']}
                 labelFormatter={(label) => `Day ${label}`}
               />
-              <Bar dataKey="totalSale" fill="#f7884f" radius={[4, 4, 0, 0]} />
-            </BarChart>
+              <Line type="monotone" dataKey="totalSale" stroke={CHART.daily} strokeWidth={2.5}
+                dot={{ r: 3, fill: CHART.daily, strokeWidth: 0 }} activeDot={{ r: 5 }} />
+            </LineChart>
           </ResponsiveContainer>
-          )}
-        </div>
+        )}
+      </div>
 
-        <div style={{ marginTop: '2rem' }}>
-          <h3>Monthly Sales (FY {new Date().getMonth() >= 3 ? new Date().getFullYear() : new Date().getFullYear() - 1}-{String(new Date().getMonth() >= 3 ? new Date().getFullYear() + 1 : new Date().getFullYear()).slice(-2)})</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={monthlySales} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#555" />
-              <XAxis dataKey="month" tick={{ fill: '#ccc' }} axisLine={{ stroke: '#777' }} />
-              <YAxis tick={{ fill: '#ccc' }} axisLine={{ stroke: '#777' }} />
-              <Tooltip
-                contentStyle={{ backgroundColor: '#333', border: '1px solid #555', color: '#fff' }}
-                formatter={(value) => [`₹${value.toFixed(2)}`, 'Total Sale']}
-              />
-              <Bar dataKey="totalSale" fill="#4f8ef7" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+      <div className='card'>
+        <div className='card-header'>
+          <h2 className='card-title'>Monthly sales ({fyLabel})</h2>
         </div>
+        <ResponsiveContainer width="100%" height={280}>
+          <LineChart data={monthlySales} margin={{ top: 8, right: 16, left: 8, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke={CHART.grid} vertical={false} />
+            <XAxis dataKey="month" tick={{ fill: CHART.axis, fontSize: 12 }} axisLine={{ stroke: CHART.grid }} tickLine={false} />
+            <YAxis tick={{ fill: CHART.axis, fontSize: 12 }} axisLine={false} tickLine={false} tickFormatter={shortRupees} width={56} />
+            <Tooltip
+              cursor={{ stroke: CHART.cursor, strokeWidth: 1 }}
+              contentStyle={CHART.tooltip}
+              formatter={(value) => [formatRupees(value), 'Sales']}
+            />
+            <Line type="monotone" dataKey="totalSale" stroke={CHART.monthly} strokeWidth={2.5}
+              dot={{ r: 4, fill: CHART.monthly, strokeWidth: 0 }} activeDot={{ r: 6 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };

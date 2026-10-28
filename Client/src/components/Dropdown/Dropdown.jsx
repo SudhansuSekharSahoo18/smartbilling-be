@@ -1,20 +1,18 @@
-import React from 'react';
+import React, { useId } from 'react';
 import './Dropdown.css';
 
 const Dropdown = ({ label, options, onSelect, value }) => {
+  const id = useId();
   const handleOptionClick = (e) => {
     onSelect(e.target.value);
   };
 
   return (
     <div className="dropdown">
-      <label>{label} </label>
-      <select id="month" name="month" onChange={handleOptionClick} value={value}>
+      <label htmlFor={id}>{label}</label>
+      <select id={id} onChange={handleOptionClick} value={value}>
         {options.map((option) => (
-          <option
-            value={option.value}
-            className="dropdown-item"
-          >
+          <option key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}

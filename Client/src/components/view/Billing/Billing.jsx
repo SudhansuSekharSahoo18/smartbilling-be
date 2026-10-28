@@ -9,6 +9,7 @@ import { formatDate } from '../../../Helper/dateHelper.js'
 import { CreateBill, GetAllItems } from '../../../APIEndpoints.js'
 import { getBackendUrl, getConfig } from '../../../Helper/apiHelper.js';
 import { calculateNetAmount } from './BillingManager.js'
+import { formatRupees } from '../../../Helper/format.js';
 
 const Billing = () => {
   const [ipAddress, setIpAddress] = useState(null);
@@ -75,7 +76,8 @@ const Billing = () => {
         let item = billItems.find(x => x.itemId === dbItem.id)
         if (item === undefined) {
           // const id = billItems.length + 1;
-          if (billItems.length === 1 && billItems[0].itemName === '' && billItems[0].mrp === 0) {
+          // Replace the starting blank row (mrp is null until a price is entered).
+          if (billItems.length === 1 && billItems[0].itemName === '' && !billItems[0].mrp) {
             const item = {
               "itemId": dbItem.id, "barcode": dbItem.barcode, "itemName": dbItem.itemName,
               "mrp": dbItem.mrp, "quantity": 1, "discountPercentage": dbItem.discountPercentage
@@ -237,34 +239,41 @@ const Billing = () => {
 
   return (
     <div>
-      <div id='barcodeControls' className='barcodeControls'>
-        <input id='barcodeInput' type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown} placeholder="Enter barcode"
-        />
-        <button onClick={onSubmitButtonClick}>Submit</button>
-        <button onClick={onClearButtonClick}>Clear</button>
-        <button onClick={() => createBill(billItems, billDiscount, modeOfPayment, customerName, customerMobileNumber, '', true)}>Create Bill</button>
-        <ReactToPrint
-          // trigger={() => {
-          // return <button>Pri t Bill</button>;
-          // }}
-          content={() => componentRef.current}
-          ref={reactToPrintRef}
-        />
-        {/* <div>Customer Details</div> */}
-
-        <div className='billingSection'>
+      <ReactToPrint
+        content={() => componentRef.current}
+        ref={reactToPrintRef}
+      />
+      <div className='billingSection'>
+        <div className='billingMain'>
+          <div className='card scanBar'>
+            <input id='barcodeInput' type="text" value={inputValue} onChange={(e) => setInputValue(e.target.value)} onKeyDown={handleKeyDown}
+              placeholder="Scan or type a barcode and press Enter" autoFocus autoComplete="off"
+            />
+            <button onClick={onSubmitButtonClick}>Add</button>
+            <button className='btn-secondary' onClick={onClearButtonClick}>Clear bill</button>
+          </div>
           <BillingTable addBlankRow={addBlankRow} items={billItems} setBillItems={setBillItems} setBillDiscount={setBillDiscount} setAmountRecieved={setAmountRecieved}
           />
-          <div className='customerDetails'>
-            <CustomInput className='customInput' label="Mobile" text={customerMobileNumber} setText={setCustomerMobileNumber} />
-            <CustomInput className='customInput' label="Name" text={customerName} setText={setCustomerName} />
-            <Dropdown label="Payment Mode" options={paymentOptions} onSelect={handleSelectedPayment} />
+        </div>
+
+        <aside className='card customerDetails'>
+          <h2 className='card-title'>Customer</h2>
+          <CustomInput label="Mobile" text={customerMobileNumber} setText={setCustomerMobileNumber} />
+          <CustomInput label="Name" text={customerName} setText={setCustomerName} />
+          <Dropdown label="Payment mode" options={paymentOptions} onSelect={handleSelectedPayment} />
+
+          <div className='summaryDivider' />
+
+          <CustomInput label="Bill discount (₹)" text={billDiscount} setText={setBillDiscount} type={'number'} />
+          <div className='netAmount'>
+            <span>Net amount</span>
+            <strong>{formatRupees(amountRecieved) || '₹0'}</strong>
           </div>
-        </div>
-        <div>
-          <CustomInput className='customInput' label="Bill Discount" text={billDiscount} setText={setBillDiscount} type={'number'} />
-          <CustomInput className='customInput' label="Amount Recieved" text={amountRecieved} setText={setAmountRecieved} isReadyOnly={true} />
-        </div>
+          <button className='btn-lg btn-block'
+            onClick={() => createBill(billItems, billDiscount, modeOfPayment, customerName, customerMobileNumber, '', true)}>
+            Create bill and print
+          </button>
+        </aside>
       </div>
 
       {/* print */}

@@ -1,10 +1,11 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 
-const ErrorView = ({ exception }) => {
+const ErrorView = ({ message }) => {
 
   return (
-    <div >
-     {exception.message}
+    <div className='card empty-state'>
+      <h2 className='card-title'>Something went wrong</h2>
+      <p className='muted'>{message}</p>
     </div>
   );
 };

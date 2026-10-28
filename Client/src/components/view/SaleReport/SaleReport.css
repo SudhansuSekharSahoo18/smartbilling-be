@@ -1,4 +1,16 @@
-label {
-    font-size: medium;
-    font-weight: bold;
+.saleReport {
+    max-width: 880px;
+}
+
+.saleReport-period {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(160px, 220px));
+    gap: 16px;
+}
+
+.saleReport-downloads {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
 }

@@ -9,6 +9,7 @@ import { postRequest, getBackendUrl } from '../../../Helper/apiHelper.js';
 import CustomCheckBox from '../../CustomCheckBox/CustomCheckBox.jsx';
 import { AddToBarcode, GetAllItems, CreateItem, UpdateItem, DeleteItem, Export, Import } from '../../../APIEndpoints.js'
 import FileUpload from '../../FileUpload/FileUpload.jsx';
+import { formatRupees } from '../../../Helper/format.js';
 
 
 const Items = (props) => {
@@ -59,15 +60,15 @@ const Items = (props) => {
   const [colDefs, setColDefs] = useState([
     // { field: "button", flex: 1, cellRendererFramework: p => <DeleteButton id={p.id} />, },
     // { field: "", flex: 1, cellRenderer: EditButton },
-    { field: "id", flex: 1, filter: true },
+    { field: "id", headerName: "ID", flex: 0.6, filter: true },
     { field: "barcode", flex: 1, filter: true },
-    { field: "itemName", flex: 2 },
-    { field: "hsnCode", flex: 1 },
-    { field: "quantity", flex: 1 },
-    { field: "Unit", flex: 1 },
-    { field: "mrp", flex: 1 },
-    { field: "discountPercentage", flex: 1 },
-    { field: "tax", flex: 1, editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['5%', '12%', '18%'], } },
+    { field: "itemName", headerName: "Item name", flex: 2, filter: true },
+    { field: "hsnCode", headerName: "HSN code", flex: 1 },
+    { field: "quantity", headerName: "Qty", flex: 0.8 },
+    { field: "unit", flex: 1 },
+    { field: "mrp", headerName: "MRP", flex: 1, valueFormatter: p => formatRupees(p.value) },
+    { field: "discountPercentage", headerName: "Discount %", flex: 1 },
+    { field: "tax", headerName: "Tax %", flex: 0.8, editable: true, cellEditor: 'agSelectCellEditor', cellEditorParams: { values: ['5%', '12%', '18%'], } },
     // { field: "isTaxInclusive", flex: 1 },
   ]);
 
@@ -338,37 +339,50 @@ const Items = (props) => {
 
   return (
     <div className='itemsPage'>
-      <div className='inputForm'>
-        <CustomInput className='customInput' label={'Barcode'} text={barcode} type={'text'} setText={setBarcode} />
-        <CustomInput className='customInput' label={'ItemName'} text={itemName} type={'text'} setText={setItemName} />
-        <CustomInput className='customInput' label={'Quantity'} text={quantity} type={'number'} setText={setQuantity} />
-        <Dropdown label={'Select Unit'} options={unitOptions} onSelect={handleSelectedUnit} />
-        <CustomInput className='customInput' label={'CostPrice'} type={'number'} text={costPrice} setText={setCostPrice} />
-        <CustomInput className='customInput' label={'MRP'} text={MRP} type={'number'} setText={setMRP} />
-        <CustomInput className='customInput' label={'Discount Percentage'} type={'number'} text={discountPercentage} setText={setDiscountPercentage} />
-        <CustomInput className='customInput' label={'Tax'} text={tax} type={'number'} setText={setTax} />
-        <label>%</label>
-        <CustomCheckBox className='customInput' label={'Tax Inclusive'} isChecked={isTaxInclusive} setIsChecked={setIsTaxInclusive} />
-        <CustomInput className='customInput' label={'HSN Code'} text={hsnCode} type={'text'} setText={setHsnCode} />
-
+      <div className='card'>
+        <div className='card-header'>
+          <h2 className='card-title'>{isEditMode ? 'Edit item' : 'Add item'}</h2>
+          {!isEditMode && <span className='muted'>Leave Barcode blank to number it automatically. Double-click a row to edit it.</span>}
+        </div>
+        <div className='form-grid'>
+          <CustomInput label={'Barcode'} text={barcode} type={'text'} setText={setBarcode} placeholder='Auto' />
+          <CustomInput label={'Item name'} text={itemName} type={'text'} setText={setItemName} />
+          <CustomInput label={'HSN code'} text={hsnCode} type={'text'} setText={setHsnCode} />
+          <CustomInput label={'Quantity'} text={quantity} type={'number'} setText={setQuantity} />
+          <Dropdown label={'Unit'} options={unitOptions} onSelect={handleSelectedUnit} />
+          <CustomInput label={'Cost price'} type={'number'} text={costPrice} setText={setCostPrice} />
+          <CustomInput label={'MRP'} text={MRP} type={'number'} setText={setMRP} />
+          <CustomInput label={'Discount %'} type={'number'} text={discountPercentage} setText={setDiscountPercentage} />
+          <CustomInput label={'Tax %'} text={tax} type={'number'} setText={setTax} />
+          <CustomCheckBox label={'Tax inclusive'} isChecked={isTaxInclusive} setIsChecked={setIsTaxInclusive} />
+        </div>
+        <div className='toolbar itemsActions'>
+          {!isEditMode && <button onClick={OnAddItemClicked}>Add item</button>}
+          {isEditMode && <button onClick={OnEditButtonClicked}>Update item</button>}
+          <button className='btn-secondary' onClick={OnClearButtonClicked}>{isEditMode ? 'Cancel' : 'Clear'}</button>
+        </div>
       </div>
-      {!isEditMode && <button onClick={OnAddItemClicked}>Add Item</button>}
-      {isEditMode && <button onClick={OnEditButtonClicked}>Update</button>}
-      <button onClick={OnClearButtonClicked}>{isEditMode ? 'Cancel' : 'Clear'}</button>
-      {!isEditMode && <button onClick={OnDeleteButtonClicked}>Delete</button>}
-      {!isEditMode && <button onClick={OnAddToBarcodeButtonClicked}>Add to Barcode</button>}
-      {!isEditMode && <button onClick={OnExportButtonClicked}>Export</button>}
-      {!isEditMode && <button onClick={OnImportButtonClicked}>Import</button>}
-      {<FileUpload ipAddress={ip} />}
-      {!isEditMode && <div className="ag-theme-quartz" >
-        <AgGridReact rowData={items} columnDefs={colDefs} embedFullWidthRows={true}
-          ref={gridRef}
-          rowSelection={'single'}
-          onSelectionChanged={() => onSelectionChanged()}
-          onRowDoubleClicked={(e) => onRowDoubleClicked(e)}
-          pagination={pagination} paginationPageSize={paginationPageSize}
-          paginationPageSizeSelector={paginationPageSizeSelector}
-        />
+
+      {!isEditMode && <div className='card'>
+        <div className='toolbar'>
+          <button className='btn-secondary' onClick={OnAddToBarcodeButtonClicked}>Add to barcode</button>
+          <button className='btn-danger' onClick={OnDeleteButtonClicked}>Delete</button>
+          <span className='toolbar-spacer' />
+          <button className='btn-secondary' onClick={OnExportButtonClicked}>Export</button>
+          <button className='btn-secondary' onClick={OnImportButtonClicked}>Import</button>
+          <span className='toolbar-divider' />
+          <FileUpload ipAddress={ip} />
+        </div>
+        <div className="ag-theme-quartz grid-card">
+          <AgGridReact rowData={items} columnDefs={colDefs} embedFullWidthRows={true}
+            ref={gridRef}
+            rowSelection={'single'}
+            onSelectionChanged={() => onSelectionChanged()}
+            onRowDoubleClicked={(e) => onRowDoubleClicked(e)}
+            pagination={pagination} paginationPageSize={paginationPageSize}
+            paginationPageSizeSelector={paginationPageSizeSelector}
+          />
+        </div>
       </div>}
     </div>
   );
