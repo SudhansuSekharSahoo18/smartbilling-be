@@ -8,6 +8,8 @@ import { DeleteBarcode, GetBarcodeList } from '../../../APIEndpoints.js'
 import FolderChooser from '../../FolderChooser/FolderChooser.jsx';
 import { GenerateBarcode } from '../../../APIEndpoints.js'
 import { getBackendUrl, getConfig } from '../../../Helper/apiHelper.js';
+import { isDesktop, sendToDesktop } from '../../../Helper/desktopBridge.js';
+import { DEFAULT_DESIGN, buildPrintJob, loadLabelDesign, pageWidthMm } from '../../../Helper/labelDesign.js';
 
 
 const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
@@ -16,7 +18,8 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
   const [error, setError] = useState(null);
   const componentRef = useRef(null);
   const reactToPrintRef = useRef();
-  const [shopName, setShopName] = useState('Nandini Fashion')
+  const [shopName, setShopName] = useState('')
+  const [labelDesign, setLabelDesign] = useState(DEFAULT_DESIGN)
   const [ip, setIp] = useState(null)
   const [barcodeFilePath, setBarcodeFilePath] = useState(null)
   const [selectedId, setSelectedId] = useState(0)
@@ -116,11 +119,45 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
     }
   };
 
+  const onPrintLabelsClicked = async () => {
+    if (rowData.length === 0) {
+      notify('warning', 'Add items to print labels');
+      return;
+    }
+    if (!isDesktop()) {
+      handlePrint();
+      return;
+    }
+    try {
+      const result = await sendToDesktop({
+        type: 'printLabels',
+        job: buildPrintJob(labelDesign, rowData, shopName),
+      });
+      if (result.ok) notify('success', result.message);
+      else notify('error', result.message);
+    } catch (error) {
+      notify('error', error.message);
+    }
+  };
+
+  const onChooseLabelPrinterClicked = async () => {
+    try {
+      const result = await sendToDesktop({ type: 'chooseLabelPrinter' });
+      if (result.ok) notify('success', `Label printer: ${result.printer}`);
+    } catch (error) {
+      notify('error', error.message);
+    }
+  };
+
   useEffect(() => {
     Promise.all([getBackendUrl(), getConfig()])
       .then(([url, data]) => {
         setIp(url);
         setBarcodeFilePath(data.BarcodeGenerateFilePath);
+        setShopName(data.shopName ?? '');
+        loadLabelDesign(url)
+          .then(setLabelDesign)
+          .catch(error => notify('error', `${error.message}. Using the default label design.`));
         fetch(url + GetBarcodeList)
           .then(response => {
             if (!response.ok) {
@@ -145,20 +182,21 @@ const BarcodeView = ({ notify, ipAddress, barcodeGenerateFilePath }) => {
       <button onClick={() => onAddItemButtonClicked()}>Add Item</button>
       <button onClick={() => onClearItemButtonClicked()}>Clear</button>
       <button onClick={() => OnDeleteButtonClicked()}>Delete</button>
-      {/* <ReactToPrint
-        trigger={() => {
-          return <button>Print Barcode</button>;
-        }}
+      <button onClick={() => onPrintLabelsClicked()}>Print Labels</button>
+      {isDesktop() && <button onClick={() => onChooseLabelPrinterClicked()}>Label printer…</button>}
+      <ReactToPrint
+        trigger={() => <span hidden />}
         content={() => componentRef.current}
+        pageStyle={`@page { size: ${pageWidthMm(labelDesign)}mm ${labelDesign.heightMm}mm; margin: 0 } body { margin: 0 }`}
         ref={reactToPrintRef}
-      /> */}
+      />
       <AgGridReact rowData={rowData} columnDefs={colDefs}
         ref={gridRef}
         rowSelection={'single'}
         onSelectionChanged={() => onSelectionChanged()}
       />
       <div ref={componentRef}>
-        <BarcodeReport barcodeList={rowData} shopName={shopName} />
+        <BarcodeReport barcodeList={rowData} shopName={shopName} design={labelDesign} />
       </div>
     </div>
   );

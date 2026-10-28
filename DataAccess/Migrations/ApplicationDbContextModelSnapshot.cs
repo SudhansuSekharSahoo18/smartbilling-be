@@ -124,7 +124,7 @@ namespace DataAccess.Migrations
                         {
                             Id = 1,
                             CreatedById = 1,
-                            CreatedDateTime = new DateTime(2026, 5, 21, 12, 15, 18, 394, DateTimeKind.Local).AddTicks(3798),
+                            CreatedDateTime = new DateTime(2026, 10, 27, 23, 55, 35, 362, DateTimeKind.Local).AddTicks(9278),
                             IsAdmin = true,
                             Name = "System",
                             Password = "12345",
@@ -162,6 +162,7 @@ namespace DataAccess.Migrations
                         .HasColumnType("REAL");
 
                     b.Property<string>("HSNCode")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsTaxInclusive")
@@ -196,6 +197,24 @@ namespace DataAccess.Migrations
                     b.HasIndex("CategoryId");
 
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("Models.Models.LabelDesign", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DesignJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LabelDesigns");
                 });
 
             modelBuilder.Entity("SmartBillingServer.Models.Barcode", b =>

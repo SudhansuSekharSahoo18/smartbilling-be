@@ -35,11 +35,18 @@ internal class Program
             builder.Services.AddScoped<IBillRepository, BillRepository>();
             builder.Services.AddScoped<IBarcodeRepository, BarcodeRepository>();
             builder.Services.AddScoped<IApplicationConfigurationRepository, ApplicationConfigurationRepository>();
+            builder.Services.AddScoped<ILabelDesignRepository, LabelDesignRepository>();
 
             // Add configuration settings
             // builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 
 var app = builder.Build();
+
+// Bring the database schema up to date (creates SmartBilling.db on first run).
+using (var scope = app.Services.CreateScope())
+{
+    scope.ServiceProvider.GetRequiredService<ApplicationDbContext>().Database.Migrate();
+}
 #region For running react UI in the while running the backend API
 
 app.UseStaticFiles();                // Serve static files from wwwroot
@@ -91,7 +98,8 @@ lifetime.ApplicationStarted.Register(() =>
 app.Run();
 
         }
-        catch (Exception ex)
+        // HostAbortedException is how EF Core tools (dotnet ef) stop the app after reading its services; not a crash.
+        catch (Exception ex) when (ex is not HostAbortedException)
         {
             string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
             if (!Directory.Exists(folderPath))

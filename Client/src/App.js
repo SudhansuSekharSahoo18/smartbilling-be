@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Items from './components/view/Items/Items';
 import Bills from './components/view/Bills/Bills';
 import BarcodeView from './components/view/Barcode/BarcodeView';
+import LabelDesigner from './components/view/LabelDesign/LabelDesigner';
 import Billing from './components/view/Billing/Billing';
 import SaleReport from './components/view/SaleReport/SaleReport';
 import { ToastContainer, toast } from 'react-toastify';
@@ -66,6 +67,9 @@ const App = () => {
             <li className={selectedTab === 'generateBarcode' ? 'selectedNav' : ''}>
               <Link to="/generateBarcode"><div onClick={() => setSelectedTab('generateBarcode')}>Barcode</div></Link>
             </li>
+            <li className={selectedTab === 'labelDesign' ? 'selectedNav' : ''}>
+              <Link to="/labelDesign"><div onClick={() => setSelectedTab('labelDesign')}>Label Design</div></Link>
+            </li>
             <li className={selectedTab === 'saleReport' ? 'selectedNav' : ''}>
               <Link to="/saleReport"><div onClick={() => setSelectedTab('saleReport')}>Sale Report</div></Link>
             </li>
@@ -83,6 +87,7 @@ const App = () => {
             <Route path="/bills" element={<Bills notify={notify} ipAddress={ipAddress} />} />
             <Route path="/generateBarcode" element={<BarcodeView notify={notify} ipAddress={ipAddress}
               barcodeGenerateFilePath={barcodeGenerateFilePath} />} />
+            <Route path="/labelDesign" element={<LabelDesigner notify={notify} />} />
             <Route path="/saleReport" element={<SaleReport notify={notify} ipAddress={ipAddress} />} />
             <Route path="/setting" element={<Setting notify={notify} ipAddress={ipAddress} />} />
             <Route path="/error" element={<ErrorView message={'Not able to connect to server'} />} />

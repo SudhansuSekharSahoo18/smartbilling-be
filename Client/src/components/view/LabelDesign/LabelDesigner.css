@@ -1,0 +1,152 @@
+.ld-page {
+  color: #1f2933;
+  font-size: 13px;
+  /* The app's content column grows with its content, so cap the width here (nav + padding)
+     to keep the properties panel on screen and let only the canvas scroll. */
+  max-width: calc(100vw - 220px);
+}
+
+.ld-page input,
+.ld-page select {
+  font-size: 13px;
+  padding: 4px 6px;
+  border: 1px solid #c3ccd5;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.ld-page label {
+  color: #1f2933;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.ld-page button {
+  margin: 0;
+}
+
+.ld-page button:disabled {
+  background-color: #9aa5b1;
+}
+
+.ld-page h3 {
+  color: #1f2933;
+  margin: 4px 0 8px;
+  font-size: 14px;
+}
+
+.ld-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  background: white;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.ld-toolbar input {
+  width: 90px;
+}
+
+.ld-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.ld-unsaved {
+  color: #b54708;
+  font-weight: 600;
+}
+
+.ld-secondary {
+  background-color: #52606d;
+}
+
+.ld-secondary:hover {
+  background-color: #3e4c59;
+}
+
+.ld-danger {
+  background-color: #c62828;
+  margin-top: 8px;
+}
+
+.ld-danger:hover {
+  background-color: #8e1c1c;
+}
+
+.ld-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.ld-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: none;
+}
+
+.ld-toolbox {
+  width: 170px;
+}
+
+.ld-properties {
+  width: 240px;
+}
+
+.ld-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.ld-row label {
+  flex: 1;
+  min-width: 0;
+}
+
+.ld-row input {
+  width: 100%;
+}
+
+.ld-check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 6px !important;
+}
+
+.ld-hint {
+  color: #52606d;
+  margin: 0;
+}
+
+.ld-canvas {
+  flex: 1;
+  min-width: 0;
+  background: #e4e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  overflow: auto;
+}
+
+.ld-canvas-info {
+  color: #52606d;
+  margin-bottom: 12px;
+}
+
+.ld-label-frame {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  touch-action: none;
+}

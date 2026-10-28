@@ -23,6 +23,10 @@ export const GetBarcodeList = 'barcode';
 export const GenerateBarcode = 'Barcode/GenerateBarcode';
 export const DeleteBarcode = 'Barcode/Delete/';
 
+// Label design
+export const GetLabelDesign = 'labelDesign';
+export const SaveLabelDesign = 'labelDesign/save';
+
 // Health
 export const HealthApi = 'health';
 export const HealthDb = 'health/db';

@@ -4,3 +4,5 @@ Debug/
 obj/
 /SmartBillingServer/appsettings.json
 /SmartBillingServer/temp
+/SmartBillingServer/*.db-shm
+/SmartBillingServer/*.db-wal

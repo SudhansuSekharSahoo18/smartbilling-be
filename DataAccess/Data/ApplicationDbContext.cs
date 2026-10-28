@@ -16,6 +16,7 @@ namespace SmartBillingServer.DataAccess.Data
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Barcode> Barcodes { get; set; }
+        public DbSet<LabelDesign> LabelDesigns { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

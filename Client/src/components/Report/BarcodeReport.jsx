@@ -1,17 +1,30 @@
-import React, { useState } from 'react';
+import React from 'react';
 import './Report.css';
-import Barcode from 'react-barcode';
+import LabelContent from '../Label/LabelContent';
+import { expandByQuantity, pageWidthMm } from '../../Helper/labelDesign.js';
 
-// https://www.youtube.com/watch?v=E3oKoxctZd0&ab_channel=Bakhriddin%40%24
-const BarcodeReport = ({ barcodeList, shopName }) => {
+// Printable label sheet: one page per row of labels on the roll (design.columns labels per row).
+const BarcodeReport = ({ barcodeList, shopName, design }) => {
+    const labels = expandByQuantity(barcodeList);
+    const pages = [];
+    for (let i = 0; i < labels.length; i += design.columns) {
+        pages.push(labels.slice(i, i + design.columns));
+    }
+
     return (
-        <div className='barcodeReport' style={{ width: '2in', height: '1in', margin: '0' }}>
-            {barcodeList.length > 0 && barcodeList.map((item, index) => (
-                <div key={index} style={{ pageBreakAfter: 'always' }}>
-                    <div style={{ fontSize: '10px', margin: '0px', textAlign: 'center' }}>{shopName}</div>
-                    <Barcode width={1} height={40} value={item.itemCode} fontSize={10} />
-                    <div style={{ fontSize: '10px', margin: '0px' }}>{item.itemName}</div>
-                    <div style={{ fontSize: '10px', margin: '0px' }}>Fixed Price: {item.price}</div>
+        <div className='barcodeReport'>
+            {pages.map((page, index) => (
+                <div key={index} style={{
+                    display: 'flex',
+                    columnGap: `${design.columnGapMm}mm`,
+                    width: `${pageWidthMm(design)}mm`,
+                    height: `${design.heightMm}mm`,
+                    overflow: 'hidden',
+                    pageBreakAfter: index < pages.length - 1 ? 'always' : 'auto',
+                }}>
+                    {page.map((item, column) => (
+                        <LabelContent key={column} design={design} item={item} shopName={shopName} />
+                    ))}
                 </div>
             ))}
         </div>
